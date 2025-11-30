@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Delicias de Reyes App
 
 Aplicación móvil desarrollada con React Native y Expo para apoyar la gestión de una panadería.  
@@ -118,3 +119,6 @@ Persistencia de datos
   - Los datos se mantienen al cerrar y abrir la aplicación.
   - Todo se maneja localmente, sin necesidad de servidor.
 
+=======
+# deliciasdereyes
+>>>>>>> 6f3acf224949e139b7b456c55c1e7b864d779a3e

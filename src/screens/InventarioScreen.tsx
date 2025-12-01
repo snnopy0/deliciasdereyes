@@ -258,9 +258,9 @@ const InventarioScreen: React.FC = () => {
 
       {/* Modal para crear nuevo producto */}
       <Modal
-        visible={modalVisible}
+        visible={modalVisible === true}
         animationType="slide"
-        transparent
+        transparent={true}
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalContainer}>
@@ -331,9 +331,9 @@ const InventarioScreen: React.FC = () => {
 
       {/* Modal para producir unidades desde ingredientes */}
       <Modal
-        visible={produceModalVisible}
+        visible={produceModalVisible === true}
         animationType="slide"
-        transparent
+        transparent={true}
         onRequestClose={() => setProduceModalVisible(false)}
       >
         <View style={styles.modalContainer}>
@@ -382,9 +382,9 @@ const InventarioScreen: React.FC = () => {
 
       {/* Modal para agregar precio */}
       <Modal
-        visible={precioModalVisible}
+        visible={precioModalVisible === true}
         animationType="slide"
-        transparent
+        transparent={true}
         onRequestClose={() => setPrecioModalVisible(false)}
       >
         <View style={styles.modalContainer}>
@@ -431,9 +431,9 @@ const InventarioScreen: React.FC = () => {
 
       {/* Modal para editar precio */}
       <Modal
-        visible={editPrecioModalVisible}
+        visible={editPrecioModalVisible === true}
         animationType="slide"
-        transparent
+        transparent={true}
         onRequestClose={() => setEditPrecioModalVisible(false)}
       >
         <View style={styles.modalContainer}>

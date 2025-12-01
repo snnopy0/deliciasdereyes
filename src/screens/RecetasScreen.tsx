@@ -112,7 +112,7 @@ const RecetasScreen: React.FC = () => {
 
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Selecciona un producto</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.productosScrollView}>
+        <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={styles.productosScrollView}>
           {productos.map((p) => (
             <TouchableOpacity
               key={p.id}
@@ -193,9 +193,9 @@ const RecetasScreen: React.FC = () => {
 
       {/* Modal para editar receta */}
       <Modal
-        visible={modalVisible}
+        visible={modalVisible === true}
         animationType="slide"
-        transparent
+        transparent={true}
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalContainer}>

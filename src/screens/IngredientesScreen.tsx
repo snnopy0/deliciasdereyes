@@ -157,16 +157,6 @@ const IngredientesScreen: React.FC = () => {
                   <Text style={styles.editPrecioButtonText}>Precio: ${i.precioUnitario.toFixed(2)}</Text>
                 </TouchableOpacity>
               </View>
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => {
-                  console.log('Delete button pressed');
-                  confirmarEliminarIngrediente(i.id, i.nombre);
-                }}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.deleteButtonText}>✕ Eliminar</Text>
-              </TouchableOpacity>
               {isEditing ? (
                 <View style={styles.editContainer}>
                   <TextInput
@@ -210,6 +200,16 @@ const IngredientesScreen: React.FC = () => {
                   <Text style={styles.stockLabel}>{getUnidadLabel(i.tipoUnidad)}</Text>
                 </TouchableOpacity>
               )}
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => {
+                  alert('Button touched! ID: ' + i.id);
+                  confirmarEliminarIngrediente(i.id, i.nombre);
+                }}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.deleteButtonText}>✕ Eliminar</Text>
+              </TouchableOpacity>
             </View>
           );
         })}

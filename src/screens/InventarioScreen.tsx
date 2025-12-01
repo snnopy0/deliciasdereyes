@@ -210,16 +210,6 @@ const InventarioScreen: React.FC = () => {
                   </TouchableOpacity>
                 </View>
               </View>
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => {
-                  console.log('Delete product button pressed');
-                  confirmarEliminarProducto(p.id, p.nombre);
-                }}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.deleteButtonText}>✕ Eliminar</Text>
-              </TouchableOpacity>
               {isEditing ? (
                 <View style={styles.editContainer}>
                   <TextInput
@@ -263,6 +253,16 @@ const InventarioScreen: React.FC = () => {
                   <Text style={styles.stockLabel}>{p.unidad}</Text>
                 </TouchableOpacity>
               )}
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => {
+                  alert('Button touched! ID: ' + p.id);
+                  confirmarEliminarProducto(p.id, p.nombre);
+                }}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.deleteButtonText}>✕ Eliminar</Text>
+              </TouchableOpacity>
             </View>
           );
         })}

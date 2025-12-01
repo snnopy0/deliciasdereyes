@@ -21,10 +21,8 @@ function MainTabs() {
 
   const tabsForRole =
     rol === 'VENTAS'
-      ? ['Ventas', 'Pedidos', 'Inventario', 'Ingredientes', 'Reportes']
-      : ['Pedidos', 'Inventario', 'Ingredientes'];
-        ? ['Ventas', 'Pedidos', 'Inventario', 'Ingredientes', 'Recetas', 'Reportes']
-        : ['Pedidos', 'Inventario', 'Ingredientes', 'Recetas'];
+      ? ['Ventas', 'Pedidos', 'Inventario', 'Ingredientes', 'Recetas', 'Reportes']
+      : ['Pedidos', 'Inventario', 'Ingredientes', 'Recetas'];
 
   return (
     <Tab.Navigator

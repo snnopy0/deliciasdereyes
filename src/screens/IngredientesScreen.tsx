@@ -8,7 +8,6 @@ import {
   Modal,
   TextInput,
   Alert,
-  Pressable,
 } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 import type { TipoUnidadIngrediente } from '../types';
@@ -158,15 +157,16 @@ const IngredientesScreen: React.FC = () => {
                   <Text style={styles.editPrecioButtonText}>Precio: ${i.precioUnitario.toFixed(2)}</Text>
                 </TouchableOpacity>
               </View>
-              <Pressable
-                style={[styles.smallButton, styles.smallButtonDelete]}
+              <TouchableOpacity
+                style={styles.deleteButton}
                 onPress={() => {
                   console.log('Delete button pressed');
                   confirmarEliminarIngrediente(i.id, i.nombre);
                 }}
+                activeOpacity={0.7}
               >
-                <Text style={styles.smallButtonDeleteText}>✕ Eliminar</Text>
-              </Pressable>
+                <Text style={styles.deleteButtonText}>✕ Eliminar</Text>
+              </TouchableOpacity>
               {isEditing ? (
                 <View style={styles.editContainer}>
                   <TextInput
@@ -516,6 +516,20 @@ const styles = StyleSheet.create({
   smallButtonDeleteText: {
     color: '#ffffff',
     fontSize: 12,
+    fontWeight: '600',
+  },
+  deleteButton: {
+    backgroundColor: '#ef4444',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteButtonText: {
+    color: '#ffffff',
+    fontSize: 13,
     fontWeight: '600',
   },
   logoutContainer: {

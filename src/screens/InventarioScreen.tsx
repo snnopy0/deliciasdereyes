@@ -9,7 +9,6 @@ import {
   Modal,
   TextInput,
   Alert,
-  Pressable,
 } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 import { RecetaProducto } from '../types';
@@ -211,15 +210,16 @@ const InventarioScreen: React.FC = () => {
                   </TouchableOpacity>
                 </View>
               </View>
-              <Pressable
-                style={[styles.smallButton, styles.smallButtonDelete]}
+              <TouchableOpacity
+                style={styles.deleteButton}
                 onPress={() => {
                   console.log('Delete product button pressed');
                   confirmarEliminarProducto(p.id, p.nombre);
                 }}
+                activeOpacity={0.7}
               >
-                <Text style={styles.smallButtonDeleteText}>✕ Eliminar</Text>
-              </Pressable>
+                <Text style={styles.deleteButtonText}>✕ Eliminar</Text>
+              </TouchableOpacity>
               {isEditing ? (
                 <View style={styles.editContainer}>
                   <TextInput
@@ -569,6 +569,20 @@ const styles = StyleSheet.create({
   smallButtonText: { fontSize: 13, fontWeight: '600', color: '#111827' },
   smallButtonDelete: { backgroundColor: '#ef4444' },
   smallButtonDeleteText: { fontSize: 13, fontWeight: '600', color: '#ffffff' },
+  deleteButton: {
+    backgroundColor: '#ef4444',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteButtonText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '600',
+  },
   stockContainer: {
     backgroundColor: '#8b5cf6',
     borderRadius: 10,

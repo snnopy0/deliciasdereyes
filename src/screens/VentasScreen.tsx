@@ -122,8 +122,8 @@ const VentasScreen: React.FC = () => {
             styles.button,
             productosSeleccionados.length === 0 && styles.buttonDisabled,
           ]}
-          onPress={handleRegistrar}
-          disabled={productosSeleccionados.length === 0}
+          onPress={productosSeleccionados.length === 0 ? undefined : handleRegistrar}
+          activeOpacity={productosSeleccionados.length === 0 ? 0.5 : 0.7}
         >
           <Text style={styles.buttonText}>
             Registrar {productosSeleccionados.length} venta(s)

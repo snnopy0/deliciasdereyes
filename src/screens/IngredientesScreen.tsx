@@ -205,7 +205,7 @@ const IngredientesScreen: React.FC = () => {
 
       {/* Modal para crear nuevo ingrediente */}
       <Modal
-        visible={modalVisible === true}
+        visible={Boolean(modalVisible)}
         animationType="slide"
         transparent={true}
         onRequestClose={() => setModalVisible(false)}
@@ -301,7 +301,7 @@ const IngredientesScreen: React.FC = () => {
 
       {/* Modal para editar precio */}
       <Modal
-        visible={editPrecioId !== null}
+        visible={Boolean(editPrecioId)}
         animationType="slide"
         transparent={true}
         onRequestClose={() => setEditPrecioId(null)}

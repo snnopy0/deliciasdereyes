@@ -8,7 +8,6 @@ import {
   ScrollView,
   Modal,
   TextInput,
-  Alert,
 } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 import { RecetaProducto } from '../types';
@@ -110,27 +109,13 @@ const InventarioScreen: React.FC = () => {
   };
 
   const confirmarEliminarProducto = (productoId: string, productoNombre: string) => {
-    console.log('Confirmar eliminar producto:', productoId, productoNombre);
-    Alert.alert(
-      'Eliminar producto',
-      `¿Estás seguro de que deseas eliminar "${productoNombre}"? Esta acción no se puede deshacer.`,
-      [
-        {
-          text: 'Cancelar',
-          onPress: () => {},
-          style: 'cancel',
-        },
-        {
-          text: 'Eliminar',
-          onPress: () => {
-            console.log('Eliminando producto:', productoId);
-            eliminarProducto(productoId);
-            alert('Producto eliminado exitosamente');
-          },
-          style: 'destructive',
-        },
-      ],
+    const confirmacion = confirm(
+      `¿Estás seguro de que deseas eliminar "${productoNombre}"? Esta acción no se puede deshacer.`
     );
+    if (confirmacion) {
+      eliminarProducto(productoId);
+      alert('Producto eliminado exitosamente');
+    }
   };
 
   return (

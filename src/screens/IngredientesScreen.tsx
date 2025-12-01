@@ -7,7 +7,6 @@ import {
   ScrollView,
   Modal,
   TextInput,
-  Alert,
 } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 import type { TipoUnidadIngrediente } from '../types';
@@ -71,27 +70,13 @@ const IngredientesScreen: React.FC = () => {
   };
 
   const confirmarEliminarIngrediente = (ingredienteId: string, ingredienteNombre: string) => {
-    console.log('Confirmar eliminar:', ingredienteId, ingredienteNombre);
-    Alert.alert(
-      'Eliminar ingrediente',
-      `¿Estás seguro de que deseas eliminar "${ingredienteNombre}"? Esta acción no se puede deshacer.`,
-      [
-        {
-          text: 'Cancelar',
-          onPress: () => {},
-          style: 'cancel',
-        },
-        {
-          text: 'Eliminar',
-          onPress: () => {
-            console.log('Eliminando ingrediente:', ingredienteId);
-            eliminarIngrediente(ingredienteId);
-            alert('Ingrediente eliminado exitosamente');
-          },
-          style: 'destructive',
-        },
-      ],
+    const confirmacion = confirm(
+      `¿Estás seguro de que deseas eliminar "${ingredienteNombre}"? Esta acción no se puede deshacer.`
     );
+    if (confirmacion) {
+      eliminarIngrediente(ingredienteId);
+      alert('Ingrediente eliminado exitosamente');
+    }
   };
 
   const getUnidadLabel = (tipo: TipoUnidadIngrediente): string => {

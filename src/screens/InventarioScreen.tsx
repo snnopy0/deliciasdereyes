@@ -62,7 +62,15 @@ const InventarioScreen: React.FC = () => {
 
   const handleActualizarStock = () => {
     if (!editStockId || !nuevoStock) return;
-    const diferencia = Number(nuevoStock) - (productos.find((p) => p.id === editStockId)?.stockActual || 0);
+    
+    // Validar que sea un número válido
+    const stockNum = Number(nuevoStock);
+    if (isNaN(stockNum) || stockNum < 0) {
+      alert('Por favor ingresa un número válido');
+      return;
+    }
+    
+    const diferencia = stockNum - (productos.find((p) => p.id === editStockId)?.stockActual || 0);
     ajustarStock(editStockId, diferencia);
     setEditStockId(null);
     setNuevoStock('');
@@ -71,7 +79,15 @@ const InventarioScreen: React.FC = () => {
 
   const handleActualizarPrecio = () => {
     if (!editPrecioId || !editPrecioValor) return;
-    actualizarPrecioProducto(editPrecioId, Number(editPrecioValor));
+    
+    // Validar que sea un número válido
+    const precioNum = Number(editPrecioValor);
+    if (isNaN(precioNum) || precioNum < 0) {
+      alert('Por favor ingresa un precio válido');
+      return;
+    }
+    
+    actualizarPrecioProducto(editPrecioId, precioNum);
     setEditPrecioModalVisible(false);
     setEditPrecioId(null);
     setEditPrecioValor('');
@@ -142,9 +158,14 @@ const InventarioScreen: React.FC = () => {
                 <View style={styles.editContainer}>
                   <TextInput
                     style={styles.editInput}
-                    keyboardType="numeric"
+                    keyboardType="number-pad"
                     value={nuevoStock}
-                    onChangeText={setNuevoStock}
+                    onChangeText={(text) => {
+                      // Solo acepta números
+                      if (text === '' || /^\d+$/.test(text)) {
+                        setNuevoStock(text);
+                      }
+                    }}
                     placeholder={p.stockActual.toString()}
                     autoFocus
                   />
@@ -210,18 +231,28 @@ const InventarioScreen: React.FC = () => {
             <TextInput
               style={styles.modalInput}
               placeholder="Ej: 50"
-              keyboardType="numeric"
+              keyboardType="number-pad"
               value={stockActual}
-              onChangeText={setStockActual}
+              onChangeText={(text) => {
+                // Solo acepta números
+                if (text === '' || /^\d+$/.test(text)) {
+                  setStockActual(text);
+                }
+              }}
             />
 
             <Text style={styles.modalLabel}>Stock mínimo</Text>
             <TextInput
               style={styles.modalInput}
               placeholder="Ej: 10"
-              keyboardType="numeric"
+              keyboardType="number-pad"
               value={stockMinimo}
-              onChangeText={setStockMinimo}
+              onChangeText={(text) => {
+                // Solo acepta números
+                if (text === '' || /^\d+$/.test(text)) {
+                  setStockMinimo(text);
+                }
+              }}
             />
 
             <Text style={styles.modalLabel}>Unidad</Text>
@@ -323,7 +354,12 @@ const InventarioScreen: React.FC = () => {
                 placeholder="0.00"
                 keyboardType="decimal-pad"
                 value={editPrecioValor}
-                onChangeText={setEditPrecioValor}
+                onChangeText={(text) => {
+                  // Solo acepta números y un punto decimal
+                  if (text === '' || /^\d*\.?\d*$/.test(text)) {
+                    setEditPrecioValor(text);
+                  }
+                }}
                 autoFocus
               />
             </View>

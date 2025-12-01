@@ -48,6 +48,16 @@ const PedidosScreen: React.FC = () => {
       alert('Por favor ingresa el cliente y selecciona productos');
       return;
     }
+    
+    // Validar que todas las cantidades sean números válidos
+    for (const item of productosSeleccionados) {
+      const cantidad = Number(item.cantidad);
+      if (isNaN(cantidad) || cantidad <= 0) {
+        alert('Por favor ingresa cantidades válidas (números mayores a 0)');
+        return;
+      }
+    }
+    
     registrarPedidoMultiple(cliente, productosSeleccionados);
     setCliente('');
     setProductosSeleccionados([]);
@@ -108,9 +118,14 @@ const PedidosScreen: React.FC = () => {
                   <Text style={styles.cantidadLabel}>{producto?.nombre}</Text>
                   <TextInput
                     style={styles.inputSmall}
-                    keyboardType="numeric"
+                    keyboardType="number-pad"
                     value={ps.cantidad}
-                    onChangeText={(text) => actualizarCantidad(ps.id, text)}
+                    onChangeText={(text) => {
+                      // Solo acepta números
+                      if (text === '' || /^\d+$/.test(text)) {
+                        actualizarCantidad(ps.id, text);
+                      }
+                    }}
                     placeholder="Cantidad"
                   />
                 </View>

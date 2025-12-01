@@ -193,7 +193,7 @@ const RecetasScreen: React.FC = () => {
 
       {/* Modal para editar receta */}
       <Modal
-        visible={modalVisible}
+        visible={!!modalVisible}
         animationType="slide"
         transparent
         onRequestClose={() => setModalVisible(false)}

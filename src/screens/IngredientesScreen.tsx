@@ -148,19 +148,21 @@ const IngredientesScreen: React.FC = () => {
                 <Text style={styles.rowText}>
                   Mínimo: {i.stockMinimo} {getUnidadLabel(i.tipoUnidad)}
                 </Text>
-                <TouchableOpacity
-                  onPress={() => abrirModalEditarPrecio(i.id, i.nombre, i.precioUnitario)}
-                  style={styles.editPrecioButton}
-                >
-                  <Text style={styles.editPrecioButtonText}>Precio: ${i.precioUnitario.toFixed(2)}</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.smallButton, styles.smallButtonDelete]}
-                  onPress={() => confirmarEliminarIngrediente(i.id, i.nombre)}
-                >
-                  <Text style={styles.smallButtonDeleteText}>Eliminar</Text>
-                </TouchableOpacity>
+                <View style={styles.buttonRow}>
+                  <TouchableOpacity
+                    onPress={() => abrirModalEditarPrecio(i.id, i.nombre, i.precioUnitario)}
+                    style={styles.editPrecioButton}
+                  >
+                    <Text style={styles.editPrecioButtonText}>Precio: ${i.precioUnitario.toFixed(2)}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.smallButton, styles.smallButtonDelete]}
+                    onPress={() => confirmarEliminarIngrediente(i.id, i.nombre)}
+                    activeOpacity={0.6}
+                  >
+                    <Text style={styles.smallButtonDeleteText}>✕ Eliminar</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
               {isEditing ? (
                 <View style={styles.editContainer}>
@@ -419,6 +421,12 @@ const styles = StyleSheet.create({
   rowCritical: { borderWidth: 1, borderColor: '#f97316' },
   rowTitle: { fontWeight: '600', fontSize: 14 },
   rowText: { fontSize: 13, color: '#4b5563' },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 8,
+    alignItems: 'center',
+  },
   stockContainer: {
     backgroundColor: '#8b5cf6',
     borderRadius: 10,

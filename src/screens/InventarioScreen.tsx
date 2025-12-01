@@ -209,8 +209,9 @@ const InventarioScreen: React.FC = () => {
                   <TouchableOpacity
                     style={[styles.smallButton, styles.smallButtonDelete]}
                     onPress={() => confirmarEliminarProducto(p.id, p.nombre)}
+                    activeOpacity={0.6}
                   >
-                    <Text style={styles.smallButtonDeleteText}>Eliminar</Text>
+                    <Text style={styles.smallButtonDeleteText}>✕ Eliminar</Text>
                   </TouchableOpacity>
                 </View>
               </View>

@@ -150,25 +150,23 @@ const IngredientesScreen: React.FC = () => {
                 <Text style={styles.rowText}>
                   Mínimo: {i.stockMinimo} {getUnidadLabel(i.tipoUnidad)}
                 </Text>
-                <View style={styles.buttonRow}>
-                  <TouchableOpacity
-                    onPress={() => abrirModalEditarPrecio(i.id, i.nombre, i.precioUnitario)}
-                    style={styles.editPrecioButton}
-                  >
-                    <Text style={styles.editPrecioButtonText}>Precio: ${i.precioUnitario.toFixed(2)}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.smallButton, styles.smallButtonDelete]}
-                    onPress={() => {
-                      console.log('Delete button pressed');
-                      confirmarEliminarIngrediente(i.id, i.nombre);
-                    }}
-                    activeOpacity={0.6}
-                  >
-                    <Text style={styles.smallButtonDeleteText}>✕ Eliminar</Text>
-                  </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                  onPress={() => abrirModalEditarPrecio(i.id, i.nombre, i.precioUnitario)}
+                  style={styles.editPrecioButton}
+                >
+                  <Text style={styles.editPrecioButtonText}>Precio: ${i.precioUnitario.toFixed(2)}</Text>
+                </TouchableOpacity>
               </View>
+              <TouchableOpacity
+                style={[styles.smallButton, styles.smallButtonDelete]}
+                onPress={() => {
+                  console.log('Delete button pressed');
+                  confirmarEliminarIngrediente(i.id, i.nombre);
+                }}
+                activeOpacity={0.6}
+              >
+                <Text style={styles.smallButtonDeleteText}>✕ Eliminar</Text>
+              </TouchableOpacity>
               {isEditing ? (
                 <View style={styles.editContainer}>
                   <TextInput

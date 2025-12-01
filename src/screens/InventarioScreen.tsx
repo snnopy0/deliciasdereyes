@@ -208,18 +208,18 @@ const InventarioScreen: React.FC = () => {
                   >
                     <Text style={styles.smallButtonText}>Producir</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.smallButton, styles.smallButtonDelete]}
-                    onPress={() => {
-                      console.log('Delete product button pressed');
-                      confirmarEliminarProducto(p.id, p.nombre);
-                    }}
-                    activeOpacity={0.6}
-                  >
-                    <Text style={styles.smallButtonDeleteText}>✕ Eliminar</Text>
-                  </TouchableOpacity>
                 </View>
               </View>
+              <TouchableOpacity
+                style={[styles.smallButton, styles.smallButtonDelete]}
+                onPress={() => {
+                  console.log('Delete product button pressed');
+                  confirmarEliminarProducto(p.id, p.nombre);
+                }}
+                activeOpacity={0.6}
+              >
+                <Text style={styles.smallButtonDeleteText}>✕ Eliminar</Text>
+              </TouchableOpacity>
               {isEditing ? (
                 <View style={styles.editContainer}>
                   <TextInput

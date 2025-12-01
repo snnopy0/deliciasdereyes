@@ -9,26 +9,49 @@ import {
 } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 
+interface ProductoSeleccionado {
+  id: string;
+  cantidad: string;
+}
+
 const PedidosScreen: React.FC = () => {
   const {
     productos,
     pedidos,
-    registrarPedido,
+    registrarPedidoMultiple,
     actualizarEstadoPedido,
     logout,
   } = useAppContext();
 
   const [cliente, setCliente] = useState('');
-  const [productoId, setProductoId] = useState<string>(
-    productos[0]?.id ?? '',
-  );
-  const [cantidad, setCantidad] = useState<string>('');
+  const [productosSeleccionados, setProductosSeleccionados] = useState<ProductoSeleccionado[]>([]);
+
+  const toggleProducto = (productoId: string) => {
+    setProductosSeleccionados((prev) => {
+      const existe = prev.find((p) => p.id === productoId);
+      if (existe) {
+        return prev.filter((p) => p.id !== productoId);
+      } else {
+        return [...prev, { id: productoId, cantidad: '1' }];
+      }
+    });
+  };
+
+  const actualizarCantidad = (productoId: string, cantidad: string) => {
+    setProductosSeleccionados((prev) =>
+      prev.map((p) => (p.id === productoId ? { ...p, cantidad } : p))
+    );
+  };
 
   const handleRegistrar = () => {
-    if (!cliente || !productoId || !cantidad) return;
-    registrarPedido(cliente, productoId, Number(cantidad));
+    if (!cliente || productosSeleccionados.length === 0) {
+      alert('Por favor ingresa el cliente y selecciona productos');
+      return;
+    }
+    registrarPedidoMultiple(cliente, productosSeleccionados);
     setCliente('');
-    setCantidad('');
+    setProductosSeleccionados([]);
+    alert('Pedido(s) registrado(s) exitosamente');
   };
 
   const getNombreProducto = (id: string) =>
@@ -49,23 +72,23 @@ const PedidosScreen: React.FC = () => {
           placeholder="Nombre del cliente"
         />
 
-        <Text style={styles.label}>Producto</Text>
+        <Text style={styles.label}>Productos (puedes elegir varios)</Text>
         <View style={styles.chipsContainer}>
           {productos.map((p) => {
-            const selected = p.id === productoId;
+            const seleccionado = productosSeleccionados.some((ps) => ps.id === p.id);
             return (
               <TouchableOpacity
                 key={p.id}
                 style={[
                   styles.chip,
-                  selected && styles.chipSelected,
+                  seleccionado && styles.chipSelected,
                 ]}
-                onPress={() => setProductoId(p.id)}
+                onPress={() => toggleProducto(p.id)}
               >
                 <Text
                   style={[
                     styles.chipText,
-                    selected && styles.chipTextSelected,
+                    seleccionado && styles.chipTextSelected,
                   ]}
                 >
                   {p.nombre}
@@ -75,17 +98,38 @@ const PedidosScreen: React.FC = () => {
           })}
         </View>
 
-        <Text style={styles.label}>Cantidad</Text>
-        <TextInput
-          style={styles.input}
-          keyboardType="numeric"
-          value={cantidad}
-          onChangeText={setCantidad}
-          placeholder="Ej: 6"
-        />
+        {productosSeleccionados.length > 0 && (
+          <View style={styles.cantidadesContainer}>
+            <Text style={styles.label}>Cantidades</Text>
+            {productosSeleccionados.map((ps) => {
+              const producto = productos.find((p) => p.id === ps.id);
+              return (
+                <View key={ps.id} style={styles.cantidadRow}>
+                  <Text style={styles.cantidadLabel}>{producto?.nombre}</Text>
+                  <TextInput
+                    style={styles.inputSmall}
+                    keyboardType="numeric"
+                    value={ps.cantidad}
+                    onChangeText={(text) => actualizarCantidad(ps.id, text)}
+                    placeholder="Cantidad"
+                  />
+                </View>
+              );
+            })}
+          </View>
+        )}
 
-        <TouchableOpacity style={styles.button} onPress={handleRegistrar}>
-          <Text style={styles.buttonText}>Registrar pedido</Text>
+        <TouchableOpacity
+          style={[
+            styles.button,
+            productosSeleccionados.length === 0 && styles.buttonDisabled,
+          ]}
+          onPress={handleRegistrar}
+          disabled={productosSeleccionados.length === 0}
+        >
+          <Text style={styles.buttonText}>
+            Registrar pedido ({productosSeleccionados.length} producto(s))
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -212,6 +256,37 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: '600',
     fontSize: 13,
+  },
+  cantidadesContainer: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+  cantidadRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+    gap: 8,
+  },
+  cantidadLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    flex: 1,
+  },
+  inputSmall: {
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: '#f9fafb',
+    fontSize: 12,
+    width: 80,
+  },
+  buttonDisabled: {
+    backgroundColor: '#d1d5db',
   },
 });
 

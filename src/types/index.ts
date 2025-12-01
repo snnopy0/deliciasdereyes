@@ -1,5 +1,7 @@
 export type RolUsuario = 'VENTAS' | 'PRODUCCION';
 
+export type TipoUnidadIngrediente = 'kg' | 'litros' | 'unitarios';
+
 export interface Usuario {
   username: string;
   password: string;
@@ -15,12 +17,31 @@ export interface Producto {
   precioVenta: number;
 }
 
+export interface Ingrediente {
+  id: string;
+  nombre: string;
+  tipoUnidad: TipoUnidadIngrediente;
+  stockActual: number;
+  stockMinimo: number;
+  precioUnitario: number;
+}
+
+export interface RecetaProducto {
+  productoId: string;
+  ingredientes: {
+    ingredienteId: string;
+    cantidad: number;
+  }[];
+}
+
 export interface Venta {
   id: string;
   fecha: string; // yyyy-mm-dd
   productoId: string;
   cantidad: number;
   precioUnitario: number;
+  costoProduccion?: number;
+  ganancia?: number;
 }
 
 export type EstadoPedido = 'pendiente' | 'entregado';

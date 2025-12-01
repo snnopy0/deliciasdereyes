@@ -8,7 +8,9 @@ import LoginScreen from '../screens/LoginScreen';
 import VentasScreen from '../screens/VentasScreen';
 import PedidosScreen from '../screens/PedidosScreen';
 import InventarioScreen from '../screens/InventarioScreen';
+import IngredientesScreen from '../screens/IngredientesScreen';
 import ReportesScreen from '../screens/ReportesScreen';
+import RecetasScreen from '../screens/RecetasScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -19,8 +21,10 @@ function MainTabs() {
 
   const tabsForRole =
     rol === 'VENTAS'
-      ? ['Ventas', 'Pedidos', 'Inventario', 'Reportes']
-      : ['Pedidos', 'Inventario'];
+      ? ['Ventas', 'Pedidos', 'Inventario', 'Ingredientes', 'Reportes']
+      : ['Pedidos', 'Inventario', 'Ingredientes'];
+        ? ['Ventas', 'Pedidos', 'Inventario', 'Ingredientes', 'Recetas', 'Reportes']
+        : ['Pedidos', 'Inventario', 'Ingredientes', 'Recetas'];
 
   return (
     <Tab.Navigator
@@ -40,8 +44,14 @@ function MainTabs() {
             case 'Inventario':
               iconName = 'cube-outline';
               break;
+            case 'Ingredientes':
+              iconName = 'pizza-outline';
+              break;
             case 'Reportes':
               iconName = 'stats-chart-outline';
+              break;
+            case 'Recetas':
+              iconName = 'book-outline';
               break;
           }
 
@@ -57,6 +67,12 @@ function MainTabs() {
       )}
       {tabsForRole.includes('Inventario') && (
         <Tab.Screen name="Inventario" component={InventarioScreen} />
+      )}
+      {tabsForRole.includes('Ingredientes') && (
+        <Tab.Screen name="Ingredientes" component={IngredientesScreen} />
+      )}
+      {tabsForRole.includes('Recetas') && (
+        <Tab.Screen name="Recetas" component={RecetasScreen} />
       )}
       {tabsForRole.includes('Reportes') && (
         <Tab.Screen name="Reportes" component={ReportesScreen} />

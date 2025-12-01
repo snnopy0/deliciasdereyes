@@ -15,7 +15,7 @@ interface ProductoSeleccionado {
 }
 
 const VentasScreen: React.FC = () => {
-  const { productos, ventas, registrarVentaMultiple, logout } = useAppContext();
+  const { productos, ventas, registrarVentaMultiple, logout, calcularCostoProduccion } = useAppContext();
   const [productosSeleccionados, setProductosSeleccionados] = useState<ProductoSeleccionado[]>([]);
 
   const hoy = new Date().toISOString().slice(0, 10);
@@ -138,16 +138,52 @@ const VentasScreen: React.FC = () => {
         ) : (
           ventasHoy.map((v) => {
             const total = v.cantidad * v.precioUnitario;
+            const costo = v.costoProduccion || 0;
+            const ganancia = v.ganancia || 0;
             return (
               <View key={v.id} style={styles.row}>
                 <Text style={styles.rowTitle}>{getNombreProducto(v.productoId)}</Text>
                 <Text style={styles.rowText}>
                   {v.cantidad} × ${v.precioUnitario} = ${total}
                 </Text>
+                <View style={styles.rowDetails}>
+                  <View style={styles.rowDetailItem}>
+                    <Text style={styles.rowDetailLabel}>Costo:</Text>
+                    <Text style={styles.rowDetailCosto}>-${costo.toFixed(2)}</Text>
+                  </View>
+                  <View style={styles.rowDetailItem}>
+                    <Text style={styles.rowDetailLabel}>Ganancia:</Text>
+                    <Text style={styles.rowDetailGanancia}>${ganancia.toFixed(2)}</Text>
+                  </View>
+                </View>
               </View>
             );
           })
         )}
+      
+      {ventasHoy.length > 0 && (
+        <View style={styles.resumenContainer}>
+          <Text style={styles.resumenTitle}>Resumen del día</Text>
+          <View style={styles.resumenRow}>
+            <Text style={styles.resumenLabel}>Total ventas:</Text>
+            <Text style={styles.resumenValue}>
+              ${ventasHoy.reduce((acc, v) => acc + (v.cantidad * v.precioUnitario), 0).toFixed(2)}
+            </Text>
+          </View>
+          <View style={styles.resumenRow}>
+            <Text style={styles.resumenLabel}>Costo total:</Text>
+            <Text style={[styles.resumenValue, styles.resumenCosto]}>
+              -${ventasHoy.reduce((acc, v) => acc + (v.costoProduccion || 0), 0).toFixed(2)}
+            </Text>
+          </View>
+          <View style={[styles.resumenRow, styles.resumenRowFinal]}>
+            <Text style={styles.resumenLabelFinal}>Ganancia neta:</Text>
+            <Text style={styles.resumenValueFinal}>
+              ${ventasHoy.reduce((acc, v) => acc + (v.ganancia || 0), 0).toFixed(2)}
+            </Text>
+          </View>
+        </View>
+      )}
       </View>
 
       <View style={styles.logoutContainer}>
@@ -254,6 +290,87 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     backgroundColor: '#d1d5db',
   },
-});
+  rowDetails: {
+      flexDirection: 'row',
+      gap: 12,
+      marginTop: 6,
+      paddingTop: 6,
+      borderTopWidth: 1,
+      borderTopColor: '#f3f4f6',
+    },
+    rowDetailItem: {
+      flex: 1,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    rowDetailLabel: {
+      fontSize: 12,
+      color: '#6b7280',
+      fontWeight: '500',
+    },
+    rowDetailCosto: {
+      fontSize: 12,
+      color: '#ef4444',
+      fontWeight: '600',
+    },
+    rowDetailGanancia: {
+      fontSize: 12,
+      color: '#10b981',
+      fontWeight: '600',
+    },
+    resumenContainer: {
+      backgroundColor: '#f0fdf4',
+      borderRadius: 12,
+      padding: 12,
+      marginTop: 8,
+    },
+    resumenTitle: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: '#15803d',
+      marginBottom: 8,
+    },
+    resumenRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 6,
+      borderBottomWidth: 1,
+      borderBottomColor: '#dcfce7',
+    },
+    resumenRowFinal: {
+      borderBottomWidth: 0,
+      paddingVertical: 8,
+      backgroundColor: '#dcfce7',
+      paddingHorizontal: 8,
+      borderRadius: 8,
+      marginTop: 4,
+    },
+    resumenLabel: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: '#166534',
+    },
+    resumenLabelFinal: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: '#15803d',
+    },
+    resumenValue: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: '#15803d',
+    },
+    resumenCosto: {
+      color: '#dc2626',
+    },
+    resumenValueFinal: {
+      fontSize: 16,
+      fontWeight: '800',
+      color: '#15803d',
+    },
+
+  });
 
 export default VentasScreen;

@@ -195,7 +195,7 @@ const RecetasScreen: React.FC = () => {
       <Modal
         visible={modalVisible}
         animationType="slide"
-        transparent={true}
+        transparent
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalContainer}>

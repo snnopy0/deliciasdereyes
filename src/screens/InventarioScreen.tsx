@@ -263,7 +263,7 @@ const InventarioScreen: React.FC = () => {
       <Modal
         visible={modalVisible}
         animationType="slide"
-        transparent={true}
+        transparent
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalContainer}>
@@ -336,7 +336,7 @@ const InventarioScreen: React.FC = () => {
       <Modal
         visible={produceModalVisible}
         animationType="slide"
-        transparent={true}
+        transparent
         onRequestClose={() => setProduceModalVisible(false)}
       >
         <View style={styles.modalContainer}>
@@ -387,7 +387,7 @@ const InventarioScreen: React.FC = () => {
       <Modal
         visible={precioModalVisible}
         animationType="slide"
-        transparent={true}
+        transparent
         onRequestClose={() => setPrecioModalVisible(false)}
       >
         <View style={styles.modalContainer}>
@@ -436,7 +436,7 @@ const InventarioScreen: React.FC = () => {
       <Modal
         visible={editPrecioModalVisible}
         animationType="slide"
-        transparent={true}
+        transparent
         onRequestClose={() => setEditPrecioModalVisible(false)}
       >
         <View style={styles.modalContainer}>

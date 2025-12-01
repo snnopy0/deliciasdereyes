@@ -210,7 +210,7 @@ const IngredientesScreen: React.FC = () => {
       <Modal
         visible={modalVisible}
         animationType="slide"
-        transparent={true}
+        transparent
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalContainer}>
@@ -306,7 +306,7 @@ const IngredientesScreen: React.FC = () => {
       <Modal
         visible={editPrecioId !== null}
         animationType="slide"
-        transparent={true}
+        transparent
         onRequestClose={() => setEditPrecioId(null)}
       >
         <View style={styles.modalContainer}>

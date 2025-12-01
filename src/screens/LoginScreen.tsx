@@ -45,7 +45,7 @@ const LoginScreen: React.FC = () => {
           placeholder="Contraseña (1234)"
           value={password}
           onChangeText={setPassword}
-          secureTextEntry={true}
+          secureTextEntry
         />
 
         {error && <Text style={styles.error}>{error}</Text>}

@@ -9,6 +9,7 @@ import {
   Modal,
   TextInput,
   Alert,
+  Pressable,
 } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 import { RecetaProducto } from '../types';
@@ -210,16 +211,15 @@ const InventarioScreen: React.FC = () => {
                   </TouchableOpacity>
                 </View>
               </View>
-              <TouchableOpacity
+              <Pressable
                 style={[styles.smallButton, styles.smallButtonDelete]}
                 onPress={() => {
                   console.log('Delete product button pressed');
                   confirmarEliminarProducto(p.id, p.nombre);
                 }}
-                activeOpacity={0.6}
               >
                 <Text style={styles.smallButtonDeleteText}>✕ Eliminar</Text>
-              </TouchableOpacity>
+              </Pressable>
               {isEditing ? (
                 <View style={styles.editContainer}>
                   <TextInput
@@ -561,6 +561,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 999,
+    minHeight: 40,
+    minWidth: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   smallButtonText: { fontSize: 13, fontWeight: '600', color: '#111827' },
   smallButtonDelete: { backgroundColor: '#ef4444' },

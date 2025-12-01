@@ -71,6 +71,7 @@ const IngredientesScreen: React.FC = () => {
   };
 
   const confirmarEliminarIngrediente = (ingredienteId: string, ingredienteNombre: string) => {
+    console.log('Confirmar eliminar:', ingredienteId, ingredienteNombre);
     Alert.alert(
       'Eliminar ingrediente',
       `¿Estás seguro de que deseas eliminar "${ingredienteNombre}"? Esta acción no se puede deshacer.`,
@@ -83,6 +84,7 @@ const IngredientesScreen: React.FC = () => {
         {
           text: 'Eliminar',
           onPress: () => {
+            console.log('Eliminando ingrediente:', ingredienteId);
             eliminarIngrediente(ingredienteId);
             alert('Ingrediente eliminado exitosamente');
           },
@@ -157,7 +159,10 @@ const IngredientesScreen: React.FC = () => {
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.smallButton, styles.smallButtonDelete]}
-                    onPress={() => confirmarEliminarIngrediente(i.id, i.nombre)}
+                    onPress={() => {
+                      console.log('Delete button pressed');
+                      confirmarEliminarIngrediente(i.id, i.nombre);
+                    }}
                     activeOpacity={0.6}
                   >
                     <Text style={styles.smallButtonDeleteText}>✕ Eliminar</Text>

@@ -110,6 +110,7 @@ const InventarioScreen: React.FC = () => {
   };
 
   const confirmarEliminarProducto = (productoId: string, productoNombre: string) => {
+    console.log('Confirmar eliminar producto:', productoId, productoNombre);
     Alert.alert(
       'Eliminar producto',
       `¿Estás seguro de que deseas eliminar "${productoNombre}"? Esta acción no se puede deshacer.`,
@@ -122,6 +123,7 @@ const InventarioScreen: React.FC = () => {
         {
           text: 'Eliminar',
           onPress: () => {
+            console.log('Eliminando producto:', productoId);
             eliminarProducto(productoId);
             alert('Producto eliminado exitosamente');
           },
@@ -208,7 +210,10 @@ const InventarioScreen: React.FC = () => {
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.smallButton, styles.smallButtonDelete]}
-                    onPress={() => confirmarEliminarProducto(p.id, p.nombre)}
+                    onPress={() => {
+                      console.log('Delete product button pressed');
+                      confirmarEliminarProducto(p.id, p.nombre);
+                    }}
                     activeOpacity={0.6}
                   >
                     <Text style={styles.smallButtonDeleteText}>✕ Eliminar</Text>

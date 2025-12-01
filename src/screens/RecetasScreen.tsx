@@ -12,12 +12,20 @@ import {
 import { useAppContext } from '../context/AppContext';
 
 const RecetasScreen: React.FC = () => {
-  const { productos, ingredientes, recetas, guardarRecetaProducto, obtenerRecetaProducto, calcularCostoProduccion, logout } = useAppContext();
+  const { productos, ingredientes, recetas, guardarRecetaProducto, obtenerRecetaProducto, calcularCostoProduccion, logout, productoRecetaEditar, setProductoRecetaEditar } = useAppContext();
   const [productoSeleccionado, setProductoSeleccionado] = useState<string>(productos[0]?.id ?? '');
   const [modalVisible, setModalVisible] = useState(false);
   const [ingredientesSeleccionados, setIngredientesSeleccionados] = useState<
     { ingredienteId: string; cantidad: string }[]
   >([]);
+
+  // Si se navega desde Inventario, usar el producto pasado
+  React.useEffect(() => {
+    if (productoRecetaEditar && productos.find((p) => p.id === productoRecetaEditar)) {
+      setProductoSeleccionado(productoRecetaEditar);
+      setProductoRecetaEditar(null); // Limpiar después de usar
+    }
+  }, [productoRecetaEditar, productos]);
 
   const handleAgregarIngrediente = (ingredienteId: string) => {
     if (!ingredientesSeleccionados.find((i) => i.ingredienteId === ingredienteId)) {

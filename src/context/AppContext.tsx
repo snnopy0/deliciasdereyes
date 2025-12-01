@@ -40,6 +40,10 @@ interface AppContextType {
   guardarRecetaProducto: (productoId: string, ingredientes: { ingredienteId: string; cantidad: number }[]) => void;
   obtenerRecetaProducto: (productoId: string) => RecetaProducto | undefined;
   calcularCostoProduccion: (productoId: string, cantidad: number) => number;
+  calcularMaxProducible: (productoId: string) => number;
+  producirProducto: (productoId: string, cantidad: number) => boolean;
+  productoRecetaEditar: string | null;
+  setProductoRecetaEditar: (id: string | null) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -77,6 +81,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [pedidos, setPedidos] = useState<Pedido[]>(initial.pedidos);
   const [ingredientes, setIngredientes] = useState<Ingrediente[]>(initial.ingredientes);
   const [recetas, setRecetas] = useState<RecetaProducto[]>(initial.recetas);
+  const [productoRecetaEditar, setProductoRecetaEditar] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -193,6 +198,55 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return costoTotal;
   };
 
+  // Calcula cuántas unidades del producto se pueden producir con los ingredientes actuales
+  const calcularMaxProducible = (productoId: string) => {
+    const receta = obtenerRecetaProducto(productoId);
+    if (!receta) return 0;
+
+    // Para cada ingrediente, calcular cuántas unidades del producto se pueden hacer
+    const posibles = receta.ingredientes.map((item) => {
+      const ing = ingredientes.find((i) => i.id === item.ingredienteId);
+      if (!ing) return 0;
+      if (item.cantidad <= 0) return 0;
+      return Math.floor(ing.stockActual / item.cantidad);
+    });
+
+    if (posibles.length === 0) return 0;
+    return Math.max(0, Math.min(...posibles));
+  };
+
+  // Consumir ingredientes y aumentar stock de producto
+  const producirProducto = (productoId: string, cantidad: number) => {
+    const receta = obtenerRecetaProducto(productoId);
+    if (!receta) {
+      alert('No existe receta para este producto');
+      return false;
+    }
+
+    const max = calcularMaxProducible(productoId);
+    if (cantidad <= 0 || cantidad > max) {
+      alert(`No se puede producir ${cantidad} unidades. Máximo producible: ${max}`);
+      return false;
+    }
+
+    // Ajustar ingredientes
+    const nextIngredientes = ingredientes.map((ing) => {
+      const req = receta.ingredientes.find((r) => r.ingredienteId === ing.id);
+      if (!req) return ing;
+      return { ...ing, stockActual: Math.max(0, ing.stockActual - req.cantidad * cantidad) };
+    });
+
+    // Ajustar producto stock
+    const nextProductos = productos.map((p) =>
+      p.id === productoId ? { ...p, stockActual: p.stockActual + cantidad } : p,
+    );
+
+    setIngredientes(nextIngredientes);
+    setProductos(nextProductos);
+    persist({ productos: nextProductos, ventas, pedidos, ingredientes: nextIngredientes, recetas });
+    return true;
+  };
+
   // Ventas / Pedidos
   const registrarVenta = (productoId: string, cantidadNum: number) => {
     const cantidad = Number(cantidadNum);
@@ -302,6 +356,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     guardarRecetaProducto,
     obtenerRecetaProducto,
     calcularCostoProduccion,
+    calcularMaxProducible,
+    producirProducto,
+    productoRecetaEditar,
+    setProductoRecetaEditar,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

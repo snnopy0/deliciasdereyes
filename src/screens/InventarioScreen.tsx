@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -9,9 +10,11 @@ import {
   TextInput,
 } from 'react-native';
 import { useAppContext } from '../context/AppContext';
+import { RecetaProducto } from '../types';
 
 const InventarioScreen: React.FC = () => {
-  const { productos, ajustarStock, crearProducto, actualizarPrecioProducto, logout } = useAppContext();
+  const navigation = useNavigation();
+  const { productos, ajustarStock, crearProducto, actualizarPrecioProducto, logout, calcularMaxProducible, producirProducto, setProductoRecetaEditar } = useAppContext();
   const [modalVisible, setModalVisible] = useState(false);
   const [precioModalVisible, setPrecioModalVisible] = useState(false);
   const [editPrecioModalVisible, setEditPrecioModalVisible] = useState(false);
@@ -25,6 +28,9 @@ const InventarioScreen: React.FC = () => {
   const [editPrecioId, setEditPrecioId] = useState<string | null>(null);
   const [editPrecioValor, setEditPrecioValor] = useState('');
   const [productoPrecioEditar, setProductoPrecioEditar] = useState<{ id: string; nombre: string; precio: number } | null>(null);
+  const [produceModalVisible, setProduceModalVisible] = useState(false);
+  const [produceCantidad, setProduceCantidad] = useState('');
+  const [productoAProducir, setProductoAProducir] = useState<string | null>(null);
 
   const porAcabarse = productos.filter(
     (p) => p.stockActual <= p.stockMinimo,
@@ -153,6 +159,29 @@ const InventarioScreen: React.FC = () => {
                 >
                   <Text style={styles.editPrecioButtonText}>Precio: ${p.precioVenta.toFixed(2)}</Text>
                 </TouchableOpacity>
+
+                <View style={styles.buttonsRow}>
+                  <Text style={{ fontSize: 12, color: '#6b7280', marginRight: 8 }}>Producible: {calcularMaxProducible(p.id)}</Text>
+                  <TouchableOpacity
+                    style={styles.smallButton}
+                    onPress={() => {
+                      setProductoRecetaEditar(p.id);
+                      navigation.navigate('Recetas' as never);
+                    }}
+                  >
+                    <Text style={styles.smallButtonText}>Receta</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.smallButton}
+                    onPress={() => {
+                      setProductoAProducir(p.id);
+                      setProduceCantidad('1');
+                      setProduceModalVisible(true);
+                    }}
+                  >
+                    <Text style={styles.smallButtonText}>Producir</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
               {isEditing ? (
                 <View style={styles.editContainer}>
@@ -275,6 +304,57 @@ const InventarioScreen: React.FC = () => {
                 onPress={handleCrearProducto}
               >
                 <Text style={styles.modalButtonText}>Continuar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal para producir unidades desde ingredientes */}
+      <Modal
+        visible={produceModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setProduceModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Producir unidades</Text>
+
+            <Text style={styles.modalLabel}>Cantidad a producir</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Ej: 10"
+              keyboardType="number-pad"
+              value={produceCantidad}
+              onChangeText={(text) => {
+                if (text === '' || /^\d+$/.test(text)) setProduceCantidad(text);
+              }}
+            />
+
+            <View style={styles.modalButtonsContainer}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => setProduceModalVisible(false)}
+              >
+                <Text style={styles.modalButtonCancelText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonSave]}
+                onPress={() => {
+                  if (!productoAProducir) return;
+                  const qty = Number(produceCantidad);
+                  if (!qty || qty <= 0) { alert('Cantidad inválida'); return; }
+                  const ok = producirProducto(productoAProducir, qty);
+                  if (ok) {
+                    setProduceModalVisible(false);
+                    setProductoAProducir(null);
+                    setProduceCantidad('');
+                    alert('Producción realizada');
+                  }
+                }}
+              >
+                <Text style={styles.modalButtonText}>Producir</Text>
               </TouchableOpacity>
             </View>
           </View>

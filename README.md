@@ -85,7 +85,7 @@ Cómo ejecutar el proyecto
 
 1. Clonar el repositorio:
 
-   git clone https://github.com/catuwolf/delicias-de-reyes-app.git
+   git clone https://github.com/snnopy0/deliciasdereyes
    cd delicias-de-reyes-app
 
 2. Instalar dependencias:

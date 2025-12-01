@@ -44,6 +44,8 @@ interface AppContextType {
   producirProducto: (productoId: string, cantidad: number) => boolean;
   productoRecetaEditar: string | null;
   setProductoRecetaEditar: (id: string | null) => void;
+  eliminarProducto: (productoId: string) => void;
+  eliminarIngrediente: (ingredienteId: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -146,6 +148,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     persist({ productos: nextProductos, ventas, pedidos, ingredientes, recetas });
   };
 
+  const eliminarProducto = (productoId: string) => {
+    const nextProductos = productos.filter((p) => p.id !== productoId);
+    const nextRecetas = recetas.filter((r) => r.productoId !== productoId);
+    setProductos(nextProductos);
+    setRecetas(nextRecetas);
+    persist({ productos: nextProductos, ventas, pedidos, ingredientes, recetas: nextRecetas });
+  };
+
   // Ingredientes
   const crearIngrediente = (nombre: string, tipoUnidad: TipoUnidadIngrediente, stockActual: number, precioUnitario: number) => {
     if (!nombre || stockActual < 0 || precioUnitario < 0) {
@@ -173,6 +183,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const nextIngredientes = ingredientes.map((i) => (i.id === ingredienteId ? { ...i, precioUnitario: nuevoPrecio } : i));
     setIngredientes(nextIngredientes);
     persist({ productos, ventas, pedidos, ingredientes: nextIngredientes, recetas });
+  };
+
+  const eliminarIngrediente = (ingredienteId: string) => {
+    const nextIngredientes = ingredientes.filter((i) => i.id !== ingredienteId);
+    const nextRecetas = recetas.map((r) => ({
+      ...r,
+      ingredientes: r.ingredientes.filter((ing) => ing.ingredienteId !== ingredienteId),
+    }));
+    setIngredientes(nextIngredientes);
+    setRecetas(nextRecetas);
+    persist({ productos, ventas, pedidos, ingredientes: nextIngredientes, recetas: nextRecetas });
   };
 
   // Recetas
@@ -360,6 +381,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     producirProducto,
     productoRecetaEditar,
     setProductoRecetaEditar,
+    eliminarProducto,
+    eliminarIngrediente,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

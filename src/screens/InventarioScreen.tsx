@@ -8,13 +8,14 @@ import {
   ScrollView,
   Modal,
   TextInput,
+  Alert,
 } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 import { RecetaProducto } from '../types';
 
 const InventarioScreen: React.FC = () => {
   const navigation = useNavigation();
-  const { productos, ajustarStock, crearProducto, actualizarPrecioProducto, logout, calcularMaxProducible, producirProducto, setProductoRecetaEditar } = useAppContext();
+  const { productos, ajustarStock, crearProducto, actualizarPrecioProducto, logout, calcularMaxProducible, producirProducto, setProductoRecetaEditar, eliminarProducto } = useAppContext();
   const [modalVisible, setModalVisible] = useState(false);
   const [precioModalVisible, setPrecioModalVisible] = useState(false);
   const [editPrecioModalVisible, setEditPrecioModalVisible] = useState(false);
@@ -108,6 +109,28 @@ const InventarioScreen: React.FC = () => {
     setEditPrecioModalVisible(true);
   };
 
+  const confirmarEliminarProducto = (productoId: string, productoNombre: string) => {
+    Alert.alert(
+      'Eliminar producto',
+      `¿Estás seguro de que deseas eliminar "${productoNombre}"? Esta acción no se puede deshacer.`,
+      [
+        {
+          text: 'Cancelar',
+          onPress: () => {},
+          style: 'cancel',
+        },
+        {
+          text: 'Eliminar',
+          onPress: () => {
+            eliminarProducto(productoId);
+            alert('Producto eliminado exitosamente');
+          },
+          style: 'destructive',
+        },
+      ],
+    );
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Inventario</Text>
@@ -182,6 +205,12 @@ const InventarioScreen: React.FC = () => {
                     }}
                   >
                     <Text style={styles.smallButtonText}>Producir</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.smallButton, styles.smallButtonDelete]}
+                    onPress={() => confirmarEliminarProducto(p.id, p.nombre)}
+                  >
+                    <Text style={styles.smallButtonDeleteText}>Eliminar</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -528,6 +557,8 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   smallButtonText: { fontSize: 13, fontWeight: '600', color: '#111827' },
+  smallButtonDelete: { backgroundColor: '#ef4444' },
+  smallButtonDeleteText: { fontSize: 13, fontWeight: '600', color: '#ffffff' },
   stockContainer: {
     backgroundColor: '#8b5cf6',
     borderRadius: 10,

@@ -7,12 +7,13 @@ import {
   ScrollView,
   Modal,
   TextInput,
+  Alert,
 } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 import type { TipoUnidadIngrediente } from '../types';
 
 const IngredientesScreen: React.FC = () => {
-  const { ingredientes, crearIngrediente, ajustarStockIngrediente, actualizarPrecioIngrediente, logout } = useAppContext();
+  const { ingredientes, crearIngrediente, ajustarStockIngrediente, actualizarPrecioIngrediente, logout, eliminarIngrediente } = useAppContext();
   const [modalVisible, setModalVisible] = useState(false);
   const [nombre, setNombre] = useState('');
   const [tipoUnidad, setTipoUnidad] = useState<TipoUnidadIngrediente>('kg');
@@ -67,6 +68,28 @@ const IngredientesScreen: React.FC = () => {
     setIngredientePrecioEditar({ id, nombre, precio });
     setEditPrecioId(id);
     setEditPrecioValor(precio.toString());
+  };
+
+  const confirmarEliminarIngrediente = (ingredienteId: string, ingredienteNombre: string) => {
+    Alert.alert(
+      'Eliminar ingrediente',
+      `¿Estás seguro de que deseas eliminar "${ingredienteNombre}"? Esta acción no se puede deshacer.`,
+      [
+        {
+          text: 'Cancelar',
+          onPress: () => {},
+          style: 'cancel',
+        },
+        {
+          text: 'Eliminar',
+          onPress: () => {
+            eliminarIngrediente(ingredienteId);
+            alert('Ingrediente eliminado exitosamente');
+          },
+          style: 'destructive',
+        },
+      ],
+    );
   };
 
   const getUnidadLabel = (tipo: TipoUnidadIngrediente): string => {
@@ -130,6 +153,13 @@ const IngredientesScreen: React.FC = () => {
                   style={styles.editPrecioButton}
                 >
                   <Text style={styles.editPrecioButtonText}>Precio: ${i.precioUnitario.toFixed(2)}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.smallButton, styles.smallButtonDelete]}
+                  onPress={() => confirmarEliminarIngrediente(i.id, i.nombre)}
+                >
+                  <Text style={styles.smallButtonDeleteText}>Eliminar</Text>
                 </TouchableOpacity>
               </View>
               {isEditing ? (
@@ -454,6 +484,22 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   editPrecioButtonText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  smallButton: {
+    marginTop: 6,
+    backgroundColor: '#e5e7eb',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  smallButtonDelete: {
+    backgroundColor: '#ef4444',
+  },
+  smallButtonDeleteText: {
     color: '#ffffff',
     fontSize: 12,
     fontWeight: '600',

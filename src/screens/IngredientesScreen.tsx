@@ -139,7 +139,8 @@ const IngredientesScreen: React.FC = () => {
                     keyboardType="number-pad"
                     value={nuevoStock}
                     onChangeText={(text) => {
-                      if (text === '' || /^\d+\.?\d*$/.test(text)) {
+                      // Solo números enteros positivos y decimales
+                      if (text === '' || /^\d*\.?\d*$/.test(text)) {
                         setNuevoStock(text);
                       }
                     }}
@@ -201,7 +202,12 @@ const IngredientesScreen: React.FC = () => {
               style={styles.modalInput}
               placeholder="Ej: Harina"
               value={nombre}
-              onChangeText={setNombre}
+              onChangeText={(text) => {
+                // Solo permite letras, números y espacios
+                if (text === '' || /^[a-zA-Z0-9\s]*$/.test(text)) {
+                  setNombre(text);
+                }
+              }}
             />
 
             <Text style={styles.modalLabel}>Tipo de unidad</Text>
@@ -234,7 +240,8 @@ const IngredientesScreen: React.FC = () => {
               keyboardType="number-pad"
               value={stockActual}
               onChangeText={(text) => {
-                if (text === '' || /^\d+\.?\d*$/.test(text)) {
+                // Solo números enteros positivos y decimales
+                if (text === '' || /^\d*\.?\d*$/.test(text)) {
                   setStockActual(text);
                 }
               }}
@@ -249,6 +256,7 @@ const IngredientesScreen: React.FC = () => {
                 keyboardType="decimal-pad"
                 value={precioUnitario}
                 onChangeText={(text) => {
+                  // Solo números y punto decimal
                   if (text === '' || /^\d*\.?\d*$/.test(text)) {
                     setPrecioUnitario(text);
                   }
@@ -299,6 +307,7 @@ const IngredientesScreen: React.FC = () => {
                 keyboardType="decimal-pad"
                 value={editPrecioValor}
                 onChangeText={(text) => {
+                  // Solo números y punto decimal
                   if (text === '' || /^\d*\.?\d*$/.test(text)) {
                     setEditPrecioValor(text);
                   }

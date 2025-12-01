@@ -161,12 +161,14 @@ const InventarioScreen: React.FC = () => {
                 </TouchableOpacity>
 
                 <View style={styles.buttonsRow}>
-                  <Text style={{ fontSize: 12, color: '#6b7280', marginRight: 8 }}>Producible: {calcularMaxProducible(p.id)}</Text>
+                  <Text style={{ fontSize: 12, color: '#6b7280', marginRight: 8 }}>
+                    Producible: {Math.max(0, calcularMaxProducible(p.id))}
+                  </Text>
                   <TouchableOpacity
                     style={styles.smallButton}
                     onPress={() => {
                       setProductoRecetaEditar(p.id);
-                      navigation.navigate('Recetas' as never);
+                      (navigation as any).navigate('Recetas');
                     }}
                   >
                     <Text style={styles.smallButtonText}>Receta</Text>

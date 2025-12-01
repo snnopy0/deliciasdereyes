@@ -25,7 +25,7 @@ const RecetasScreen: React.FC = () => {
       setProductoSeleccionado(productoRecetaEditar);
       setProductoRecetaEditar(null); // Limpiar después de usar
     }
-  }, [productoRecetaEditar, productos]);
+  }, [productoRecetaEditar, productos, setProductoRecetaEditar]);
 
   const handleAgregarIngrediente = (ingredienteId: string) => {
     if (!ingredientesSeleccionados.find((i) => i.ingredienteId === ingredienteId)) {

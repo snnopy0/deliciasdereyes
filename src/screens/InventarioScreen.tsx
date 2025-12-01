@@ -240,10 +240,7 @@ const InventarioScreen: React.FC = () => {
               )}
               <TouchableOpacity
                 style={styles.deleteButton}
-                onPress={() => {
-                  alert('Button touched! ID: ' + p.id);
-                  confirmarEliminarProducto(p.id, p.nombre);
-                }}
+                onPress={() => confirmarEliminarProducto(p.id, p.nombre)}
                 activeOpacity={0.7}
               >
                 <Text style={styles.deleteButtonText}>✕ Eliminar</Text>

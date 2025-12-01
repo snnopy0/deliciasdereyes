@@ -187,10 +187,7 @@ const IngredientesScreen: React.FC = () => {
               )}
               <TouchableOpacity
                 style={styles.deleteButton}
-                onPress={() => {
-                  alert('Button touched! ID: ' + i.id);
-                  confirmarEliminarIngrediente(i.id, i.nombre);
-                }}
+                onPress={() => confirmarEliminarIngrediente(i.id, i.nombre)}
                 activeOpacity={0.7}
               >
                 <Text style={styles.deleteButtonText}>✕ Eliminar</Text>

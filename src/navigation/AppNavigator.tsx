@@ -27,7 +27,7 @@ function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        headerShown: !!false,
+        headerShown: false,
         tabBarIcon: ({ color, size }) => {
           let iconName: keyof typeof Ionicons.glyphMap = 'ellipse-outline';
 
@@ -82,7 +82,7 @@ export default function AppNavigator() {
   const { usuarioActual } = useAppContext();
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: !!false }}>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       {usuarioActual ? (
         <Stack.Screen name="MainTabs" component={MainTabs} />
       ) : (

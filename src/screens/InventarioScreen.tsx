@@ -8,13 +8,24 @@ import {
   ScrollView,
   Modal,
   TextInput,
+  Alert,
 } from 'react-native';
 import { useAppContext } from '../context/AppContext';
-import { RecetaProducto } from '../types';
 
 const InventarioScreen: React.FC = () => {
   const navigation = useNavigation();
-  const { productos, ajustarStock, crearProducto, actualizarPrecioProducto, logout, calcularMaxProducible, producirProducto, setProductoRecetaEditar, eliminarProducto } = useAppContext();
+  const {
+    productos,
+    ajustarStock,
+    crearProducto,
+    actualizarPrecioProducto,
+    logout,
+    calcularMaxProducible,
+    producirProducto,
+    setProductoRecetaEditar,
+    eliminarProducto,
+  } = useAppContext();
+
   const [modalVisible, setModalVisible] = useState(false);
   const [precioModalVisible, setPrecioModalVisible] = useState(false);
   const [editPrecioModalVisible, setEditPrecioModalVisible] = useState(false);
@@ -27,14 +38,16 @@ const InventarioScreen: React.FC = () => {
   const [nuevoStock, setNuevoStock] = useState('');
   const [editPrecioId, setEditPrecioId] = useState<string | null>(null);
   const [editPrecioValor, setEditPrecioValor] = useState('');
-  const [productoPrecioEditar, setProductoPrecioEditar] = useState<{ id: string; nombre: string; precio: number } | null>(null);
+  const [productoPrecioEditar, setProductoPrecioEditar] = useState<{
+    id: string;
+    nombre: string;
+    precio: number;
+  } | null>(null);
   const [produceModalVisible, setProduceModalVisible] = useState(false);
   const [produceCantidad, setProduceCantidad] = useState('');
   const [productoAProducir, setProductoAProducir] = useState<string | null>(null);
 
-  const porAcabarse = productos.filter(
-    (p) => p.stockActual <= p.stockMinimo,
-  );
+  const porAcabarse = productos.filter((p) => p.stockActual <= p.stockMinimo);
 
   const handleCrearProducto = () => {
     if (!nombre || !stockActual || !stockMinimo || !unidad) {
@@ -55,7 +68,7 @@ const InventarioScreen: React.FC = () => {
       Number(stockActual),
       Number(stockMinimo),
       unidad,
-      Number(precioVenta)
+      Number(precioVenta),
     );
     setPrecioModalVisible(false);
     setNombre('');
@@ -68,15 +81,16 @@ const InventarioScreen: React.FC = () => {
 
   const handleActualizarStock = () => {
     if (!editStockId || !nuevoStock) return;
-    
-    // Validar que sea un número válido
+
     const stockNum = Number(nuevoStock);
     if (isNaN(stockNum) || stockNum < 0) {
       alert('Por favor ingresa un número válido');
       return;
     }
-    
-    const diferencia = stockNum - (productos.find((p) => p.id === editStockId)?.stockActual || 0);
+
+    const diferencia =
+      stockNum -
+      (productos.find((p) => p.id === editStockId)?.stockActual || 0);
     ajustarStock(editStockId, diferencia);
     setEditStockId(null);
     setNuevoStock('');
@@ -85,14 +99,13 @@ const InventarioScreen: React.FC = () => {
 
   const handleActualizarPrecio = () => {
     if (!editPrecioId || !editPrecioValor) return;
-    
-    // Validar que sea un número válido
+
     const precioNum = Number(editPrecioValor);
     if (isNaN(precioNum) || precioNum < 0) {
       alert('Por favor ingresa un precio válido');
       return;
     }
-    
+
     actualizarPrecioProducto(editPrecioId, precioNum);
     setEditPrecioModalVisible(false);
     setEditPrecioId(null);
@@ -108,14 +121,25 @@ const InventarioScreen: React.FC = () => {
     setEditPrecioModalVisible(true);
   };
 
-  const confirmarEliminarProducto = (productoId: string, productoNombre: string) => {
-    const confirmacion = confirm(
-      `¿Estás seguro de que deseas eliminar "${productoNombre}"? Esta acción no se puede deshacer.`
+  const confirmarEliminarProducto = (
+    productoId: string,
+    productoNombre: string,
+  ) => {
+    Alert.alert(
+      'Confirmar eliminación',
+      `¿Estás seguro de que deseas eliminar "${productoNombre}"? Esta acción no se puede deshacer.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: () => {
+            eliminarProducto(productoId);
+            alert('Producto eliminado exitosamente');
+          },
+        },
+      ],
     );
-    if (confirmacion) {
-      eliminarProducto(productoId);
-      alert('Producto eliminado exitosamente');
-    }
   };
 
   return (
@@ -153,10 +177,7 @@ const InventarioScreen: React.FC = () => {
           return (
             <View
               key={p.id}
-              style={[
-                styles.row,
-                critical && styles.rowCritical,
-              ]}
+              style={[styles.row, critical && styles.rowCritical]}
             >
               <View style={{ flex: 1 }}>
                 <Text style={styles.rowTitle}>{p.nombre}</Text>
@@ -164,14 +185,24 @@ const InventarioScreen: React.FC = () => {
                   Mínimo: {p.stockMinimo} {p.unidad}
                 </Text>
                 <TouchableOpacity
-                  onPress={() => abrirModalEditarPrecio(p.id, p.nombre, p.precioVenta)}
+                  onPress={() =>
+                    abrirModalEditarPrecio(p.id, p.nombre, p.precioVenta)
+                  }
                   style={styles.editPrecioButton}
                 >
-                  <Text style={styles.editPrecioButtonText}>Precio: ${p.precioVenta.toFixed(2)}</Text>
+                  <Text style={styles.editPrecioButtonText}>
+                    Precio: ${p.precioVenta.toFixed(2)}
+                  </Text>
                 </TouchableOpacity>
 
                 <View style={styles.buttonsRow}>
-                  <Text style={{ fontSize: 12, color: '#6b7280', marginRight: 8 }}>
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: '#6b7280',
+                      marginRight: 8,
+                    }}
+                  >
                     Producible: {Math.max(0, calcularMaxProducible(p.id))}
                   </Text>
                   <TouchableOpacity
@@ -202,7 +233,6 @@ const InventarioScreen: React.FC = () => {
                     keyboardType="number-pad"
                     value={nuevoStock}
                     onChangeText={(text) => {
-                      // Solo acepta números
                       if (text === '' || /^\d+$/.test(text)) {
                         setNuevoStock(text);
                       }
@@ -256,11 +286,11 @@ const InventarioScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Modal para crear nuevo producto */}
+      {/* Modal crear producto */}
       <Modal
-        visible={Boolean(modalVisible)}
+        visible={modalVisible}
         animationType="slide"
-        transparent={true}
+        transparent
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalContainer}>
@@ -282,7 +312,6 @@ const InventarioScreen: React.FC = () => {
               keyboardType="number-pad"
               value={stockActual}
               onChangeText={(text) => {
-                // Solo acepta números
                 if (text === '' || /^\d+$/.test(text)) {
                   setStockActual(text);
                 }
@@ -296,7 +325,6 @@ const InventarioScreen: React.FC = () => {
               keyboardType="number-pad"
               value={stockMinimo}
               onChangeText={(text) => {
-                // Solo acepta números
                 if (text === '' || /^\d+$/.test(text)) {
                   setStockMinimo(text);
                 }
@@ -329,11 +357,11 @@ const InventarioScreen: React.FC = () => {
         </View>
       </Modal>
 
-      {/* Modal para producir unidades desde ingredientes */}
+      {/* Modal producir */}
       <Modal
-        visible={Boolean(produceModalVisible)}
+        visible={produceModalVisible}
         animationType="slide"
-        transparent={true}
+        transparent
         onRequestClose={() => setProduceModalVisible(false)}
       >
         <View style={styles.modalContainer}>
@@ -363,7 +391,10 @@ const InventarioScreen: React.FC = () => {
                 onPress={() => {
                   if (!productoAProducir) return;
                   const qty = Number(produceCantidad);
-                  if (!qty || qty <= 0) { alert('Cantidad inválida'); return; }
+                  if (!qty || qty <= 0) {
+                    alert('Cantidad inválida');
+                    return;
+                  }
                   const ok = producirProducto(productoAProducir, qty);
                   if (ok) {
                     setProduceModalVisible(false);
@@ -380,11 +411,11 @@ const InventarioScreen: React.FC = () => {
         </View>
       </Modal>
 
-      {/* Modal para agregar precio */}
+      {/* Modal precio nuevo producto */}
       <Modal
-        visible={Boolean(precioModalVisible)}
+        visible={precioModalVisible}
         animationType="slide"
-        transparent={true}
+        transparent
         onRequestClose={() => setPrecioModalVisible(false)}
       >
         <View style={styles.modalContainer}>
@@ -429,11 +460,11 @@ const InventarioScreen: React.FC = () => {
         </View>
       </Modal>
 
-      {/* Modal para editar precio */}
+      {/* Modal editar precio */}
       <Modal
-        visible={Boolean(editPrecioModalVisible)}
+        visible={editPrecioModalVisible}
         animationType="slide"
-        transparent={true}
+        transparent
         onRequestClose={() => setEditPrecioModalVisible(false)}
       >
         <View style={styles.modalContainer}>
@@ -442,7 +473,9 @@ const InventarioScreen: React.FC = () => {
 
             <View style={styles.precioInfoContainer}>
               <Text style={styles.precioInfoLabel}>Producto:</Text>
-              <Text style={styles.precioInfoValue}>{productoPrecioEditar?.nombre}</Text>
+              <Text style={styles.precioInfoValue}>
+                {productoPrecioEditar?.nombre}
+              </Text>
             </View>
 
             <Text style={styles.modalLabel}>Nuevo precio de venta</Text>
@@ -454,7 +487,6 @@ const InventarioScreen: React.FC = () => {
                 keyboardType="decimal-pad"
                 value={editPrecioValor}
                 onChangeText={(text) => {
-                  // Solo acepta números y un punto decimal
                   if (text === '' || /^\d*\.?\d*$/.test(text)) {
                     setEditPrecioValor(text);
                   }
@@ -549,8 +581,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   smallButtonText: { fontSize: 13, fontWeight: '600', color: '#111827' },
-  smallButtonDelete: { backgroundColor: '#ef4444' },
-  smallButtonDeleteText: { fontSize: 13, fontWeight: '600', color: '#ffffff' },
   deleteButton: {
     backgroundColor: '#ef4444',
     paddingHorizontal: 12,

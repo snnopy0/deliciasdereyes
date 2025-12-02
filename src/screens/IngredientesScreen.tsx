@@ -7,12 +7,21 @@ import {
   ScrollView,
   Modal,
   TextInput,
+  Alert,
 } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 import type { TipoUnidadIngrediente } from '../types';
 
 const IngredientesScreen: React.FC = () => {
-  const { ingredientes, crearIngrediente, ajustarStockIngrediente, actualizarPrecioIngrediente, logout, eliminarIngrediente } = useAppContext();
+  const {
+    ingredientes,
+    crearIngrediente,
+    ajustarStockIngrediente,
+    actualizarPrecioIngrediente,
+    logout,
+    eliminarIngrediente,
+  } = useAppContext();
+
   const [modalVisible, setModalVisible] = useState(false);
   const [nombre, setNombre] = useState('');
   const [tipoUnidad, setTipoUnidad] = useState<TipoUnidadIngrediente>('kg');
@@ -22,7 +31,11 @@ const IngredientesScreen: React.FC = () => {
   const [nuevoStock, setNuevoStock] = useState('');
   const [editPrecioId, setEditPrecioId] = useState<string | null>(null);
   const [editPrecioValor, setEditPrecioValor] = useState('');
-  const [ingredientePrecioEditar, setIngredientePrecioEditar] = useState<{ id: string; nombre: string; precio: number } | null>(null);
+  const [ingredientePrecioEditar, setIngredientePrecioEditar] = useState<{
+    id: string;
+    nombre: string;
+    precio: number;
+  } | null>(null);
 
   const porAcabarse = ingredientes.filter((i) => i.stockActual <= i.stockMinimo);
 
@@ -42,7 +55,9 @@ const IngredientesScreen: React.FC = () => {
 
   const handleActualizarStock = () => {
     if (!editStockId || !nuevoStock) return;
-    const diferencia = Number(nuevoStock) - (ingredientes.find((i) => i.id === editStockId)?.stockActual || 0);
+    const diferencia =
+      Number(nuevoStock) -
+      (ingredientes.find((i) => i.id === editStockId)?.stockActual || 0);
     ajustarStockIngrediente(editStockId, diferencia);
     setEditStockId(null);
     setNuevoStock('');
@@ -69,14 +84,25 @@ const IngredientesScreen: React.FC = () => {
     setEditPrecioValor(precio.toString());
   };
 
-  const confirmarEliminarIngrediente = (ingredienteId: string, ingredienteNombre: string) => {
-    const confirmacion = confirm(
-      `¿Estás seguro de que deseas eliminar "${ingredienteNombre}"? Esta acción no se puede deshacer.`
+  const confirmarEliminarIngrediente = (
+    ingredienteId: string,
+    ingredienteNombre: string,
+  ) => {
+    Alert.alert(
+      'Confirmar eliminación',
+      `¿Estás seguro de que deseas eliminar "${ingredienteNombre}"? Esta acción no se puede deshacer.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: () => {
+            eliminarIngrediente(ingredienteId);
+            alert('Ingrediente eliminado exitosamente');
+          },
+        },
+      ],
     );
-    if (confirmacion) {
-      eliminarIngrediente(ingredienteId);
-      alert('Ingrediente eliminado exitosamente');
-    }
   };
 
   const getUnidadLabel = (tipo: TipoUnidadIngrediente): string => {
@@ -110,7 +136,8 @@ const IngredientesScreen: React.FC = () => {
             <View key={i.id} style={styles.highlightRow}>
               <Text style={styles.highlightName}>{i.nombre}</Text>
               <Text style={styles.highlightText}>
-                Stock: {i.stockActual} {getUnidadLabel(i.tipoUnidad)} (mínimo {i.stockMinimo})
+                Stock: {i.stockActual} {getUnidadLabel(i.tipoUnidad)} (mínimo{' '}
+                {i.stockMinimo})
               </Text>
             </View>
           ))
@@ -125,10 +152,7 @@ const IngredientesScreen: React.FC = () => {
           return (
             <View
               key={i.id}
-              style={[
-                styles.row,
-                critical && styles.rowCritical,
-              ]}
+              style={[styles.row, critical && styles.rowCritical]}
             >
               <View style={{ flex: 1 }}>
                 <Text style={styles.rowTitle}>{i.nombre}</Text>
@@ -136,10 +160,14 @@ const IngredientesScreen: React.FC = () => {
                   Mínimo: {i.stockMinimo} {getUnidadLabel(i.tipoUnidad)}
                 </Text>
                 <TouchableOpacity
-                  onPress={() => abrirModalEditarPrecio(i.id, i.nombre, i.precioUnitario)}
+                  onPress={() =>
+                    abrirModalEditarPrecio(i.id, i.nombre, i.precioUnitario)
+                  }
                   style={styles.editPrecioButton}
                 >
-                  <Text style={styles.editPrecioButtonText}>Precio: ${i.precioUnitario.toFixed(2)}</Text>
+                  <Text style={styles.editPrecioButtonText}>
+                    Precio: ${i.precioUnitario.toFixed(2)}
+                  </Text>
                 </TouchableOpacity>
               </View>
               {isEditing ? (
@@ -149,7 +177,6 @@ const IngredientesScreen: React.FC = () => {
                     keyboardType="number-pad"
                     value={nuevoStock}
                     onChangeText={(text) => {
-                      // Solo números enteros positivos y decimales
                       if (text === '' || /^\d*\.?\d*$/.test(text)) {
                         setNuevoStock(text);
                       }
@@ -182,7 +209,9 @@ const IngredientesScreen: React.FC = () => {
                   }}
                 >
                   <Text style={styles.stockText}>{i.stockActual}</Text>
-                  <Text style={styles.stockLabel}>{getUnidadLabel(i.tipoUnidad)}</Text>
+                  <Text style={styles.stockLabel}>
+                    {getUnidadLabel(i.tipoUnidad)}
+                  </Text>
                 </TouchableOpacity>
               )}
               <TouchableOpacity
@@ -205,9 +234,9 @@ const IngredientesScreen: React.FC = () => {
 
       {/* Modal para crear nuevo ingrediente */}
       <Modal
-        visible={Boolean(modalVisible)}
+        visible={modalVisible}
         animationType="slide"
-        transparent={true}
+        transparent
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalContainer}>
@@ -220,7 +249,6 @@ const IngredientesScreen: React.FC = () => {
               placeholder="Ej: Harina"
               value={nombre}
               onChangeText={(text) => {
-                // Solo permite letras, números y espacios
                 if (text === '' || /^[a-zA-Z0-9\s]*$/.test(text)) {
                   setNombre(text);
                 }
@@ -229,25 +257,32 @@ const IngredientesScreen: React.FC = () => {
 
             <Text style={styles.modalLabel}>Tipo de unidad</Text>
             <View style={styles.unidadButtonsContainer}>
-              {(['kg', 'litros', 'unitarios'] as TipoUnidadIngrediente[]).map((tipo) => (
-                <TouchableOpacity
-                  key={tipo}
-                  style={[
-                    styles.unidadButton,
-                    tipoUnidad === tipo && styles.unidadButtonSelected,
-                  ]}
-                  onPress={() => setTipoUnidad(tipo)}
-                >
-                  <Text
+              {(['kg', 'litros', 'unitarios'] as TipoUnidadIngrediente[]).map(
+                (tipo) => (
+                  <TouchableOpacity
+                    key={tipo}
                     style={[
-                      styles.unidadButtonText,
-                      tipoUnidad === tipo && styles.unidadButtonTextSelected,
+                      styles.unidadButton,
+                      tipoUnidad === tipo && styles.unidadButtonSelected,
                     ]}
+                    onPress={() => setTipoUnidad(tipo)}
                   >
-                    {tipo === 'unitarios' ? 'Unitarios' : tipo === 'kg' ? 'Kilos' : 'Litros'}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                    <Text
+                      style={[
+                        styles.unidadButtonText,
+                        tipoUnidad === tipo &&
+                          styles.unidadButtonTextSelected,
+                      ]}
+                    >
+                      {tipo === 'unitarios'
+                        ? 'Unitarios'
+                        : tipo === 'kg'
+                        ? 'Kilos'
+                        : 'Litros'}
+                    </Text>
+                  </TouchableOpacity>
+                ),
+              )}
             </View>
 
             <Text style={styles.modalLabel}>Stock inicial</Text>
@@ -257,7 +292,6 @@ const IngredientesScreen: React.FC = () => {
               keyboardType="number-pad"
               value={stockActual}
               onChangeText={(text) => {
-                // Solo números enteros positivos y decimales
                 if (text === '' || /^\d*\.?\d*$/.test(text)) {
                   setStockActual(text);
                 }
@@ -273,7 +307,6 @@ const IngredientesScreen: React.FC = () => {
                 keyboardType="decimal-pad"
                 value={precioUnitario}
                 onChangeText={(text) => {
-                  // Solo números y punto decimal
                   if (text === '' || /^\d*\.?\d*$/.test(text)) {
                     setPrecioUnitario(text);
                   }
@@ -301,19 +334,20 @@ const IngredientesScreen: React.FC = () => {
 
       {/* Modal para editar precio */}
       <Modal
-        visible={Boolean(editPrecioId)}
+        visible={editPrecioId !== null}
         animationType="slide"
-        transparent={true}
+        transparent
         onRequestClose={() => setEditPrecioId(null)}
       >
-
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Editar Precio</Text>
 
             <View style={styles.precioInfoContainer}>
               <Text style={styles.precioInfoLabel}>Ingrediente:</Text>
-              <Text style={styles.precioInfoValue}>{ingredientePrecioEditar?.nombre}</Text>
+              <Text style={styles.precioInfoValue}>
+                {ingredientePrecioEditar?.nombre}
+              </Text>
             </View>
 
             <Text style={styles.modalLabel}>Nuevo precio unitario</Text>
@@ -325,7 +359,6 @@ const IngredientesScreen: React.FC = () => {
                 keyboardType="decimal-pad"
                 value={editPrecioValor}
                 onChangeText={(text) => {
-                  // Solo números y punto decimal
                   if (text === '' || /^\d*\.?\d*$/.test(text)) {
                     setEditPrecioValor(text);
                   }

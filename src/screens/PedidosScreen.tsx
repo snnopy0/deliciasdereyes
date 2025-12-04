@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 
@@ -14,17 +15,32 @@ interface ProductoSeleccionado {
   cantidad: string;
 }
 
+interface PedidoGrupo {
+  key: string; // cliente|fecha
+  cliente: string;
+  fecha: string;
+  items: {
+    id: string;
+    productoId: string;
+    cantidad: number;
+    estado: 'pendiente' | 'entregado';
+  }[];
+  tienePendiente: boolean;
+}
+
 const PedidosScreen: React.FC = () => {
   const {
     productos,
     pedidos,
     registrarPedidoMultiple,
     actualizarEstadoPedido,
+    eliminarPedido,
     logout,
   } = useAppContext();
 
   const [cliente, setCliente] = useState('');
-  const [productosSeleccionados, setProductosSeleccionados] = useState<ProductoSeleccionado[]>([]);
+  const [productosSeleccionados, setProductosSeleccionados] =
+    useState<ProductoSeleccionado[]>([]);
 
   const toggleProducto = (productoId: string) => {
     setProductosSeleccionados((prev) => {
@@ -39,38 +55,124 @@ const PedidosScreen: React.FC = () => {
 
   const actualizarCantidad = (productoId: string, cantidad: string) => {
     setProductosSeleccionados((prev) =>
-      prev.map((p) => (p.id === productoId ? { ...p, cantidad } : p))
+      prev.map((p) => (p.id === productoId ? { ...p, cantidad } : p)),
     );
-  };
-
-  const handleRegistrar = () => {
-    if (!cliente || productosSeleccionados.length === 0) {
-      alert('Por favor ingresa el cliente y selecciona productos');
-      return;
-    }
-    
-    // Validar que todas las cantidades sean números válidos
-    for (const item of productosSeleccionados) {
-      const cantidad = Number(item.cantidad);
-      if (isNaN(cantidad) || cantidad <= 0) {
-        alert('Por favor ingresa cantidades válidas (números mayores a 0)');
-        return;
-      }
-    }
-    
-    registrarPedidoMultiple(cliente, productosSeleccionados);
-    setCliente('');
-    setProductosSeleccionados([]);
-    alert('Pedido(s) registrado(s) exitosamente');
   };
 
   const getNombreProducto = (id: string) =>
     productos.find((p) => p.id === id)?.nombre ?? 'Desconocido';
 
+  const handleRegistrar = () => {
+    if (!cliente || productosSeleccionados.length === 0) {
+      Alert.alert(
+        'Datos incompletos',
+        'Por favor ingresa el nombre del cliente y selecciona al menos un producto.',
+      );
+      return;
+    }
+
+    // Validar cantidades
+    for (const item of productosSeleccionados) {
+      const cantidad = Number(item.cantidad);
+      if (isNaN(cantidad) || cantidad <= 0) {
+        Alert.alert(
+          'Cantidad inválida',
+          'Por favor ingresa cantidades válidas (números mayores a 0).',
+        );
+        return;
+      }
+    }
+
+    // Registrar en el contexto (no muestra alert)
+    registrarPedidoMultiple(cliente, productosSeleccionados);
+
+    // Crear resumen para UNA sola alerta
+    const totalProductos = productosSeleccionados.reduce(
+      (acc, item) => acc + Number(item.cantidad || 0),
+      0,
+    );
+
+    const lineas = productosSeleccionados
+      .map((item) => {
+        const nombreProducto = getNombreProducto(item.id);
+        const cantidadNum = Number(item.cantidad || 0);
+        return `${nombreProducto} · ${cantidadNum} und.`;
+      })
+      .join('\n');
+
+    const mensaje =
+      `${cliente}\n` +
+      `${totalProductos} producto(s):\n\n` +
+      lineas;
+
+    Alert.alert('Pedido registrado', mensaje);
+
+    // Limpiar formulario
+    setCliente('');
+    setProductosSeleccionados([]);
+  };
+
+  const confirmarEliminarGrupo = (grupo: PedidoGrupo) => {
+    Alert.alert(
+      'Confirmar eliminación',
+      `¿Estás seguro de que deseas eliminar el pedido de "${grupo.cliente}" del ${grupo.fecha}? Esta acción no se puede deshacer.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: () => {
+            const ids = grupo.items.map((item) => item.id);
+            eliminarPedido(ids); // 👈 elimina TODA la lista del grupo
+            Alert.alert('Éxito', 'Pedido eliminado exitosamente');
+          },
+        },
+      ],
+    );
+  };
+
+  const marcarGrupoEntregado = (grupo: PedidoGrupo) => {
+    grupo.items.forEach((item) => {
+      if (item.estado === 'pendiente') {
+        actualizarEstadoPedido(item.id, 'entregado');
+      }
+    });
+  };
+
+  // Agrupar pedidos por cliente + fecha
+  const grupos: PedidoGrupo[] = (() => {
+    const mapa: { [key: string]: PedidoGrupo } = {};
+
+    pedidos.forEach((p) => {
+      const key = `${p.cliente}|${p.fecha}`;
+      if (!mapa[key]) {
+        mapa[key] = {
+          key,
+          cliente: p.cliente,
+          fecha: p.fecha,
+          items: [],
+          tienePendiente: false,
+        };
+      }
+      mapa[key].items.push({
+        id: p.id,
+        productoId: p.productoId,
+        cantidad: p.cantidad,
+        estado: p.estado,
+      });
+      if (p.estado === 'pendiente') {
+        mapa[key].tienePendiente = true;
+      }
+    });
+
+    return Object.values(mapa);
+  })();
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>Pedidos</Text>
 
+      {/* NUEVO PEDIDO */}
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Nuevo pedido</Text>
 
@@ -85,14 +187,13 @@ const PedidosScreen: React.FC = () => {
         <Text style={styles.label}>Productos (puedes elegir varios)</Text>
         <View style={styles.chipsContainer}>
           {productos.map((p) => {
-            const seleccionado = productosSeleccionados.some((ps) => ps.id === p.id);
+            const seleccionado = productosSeleccionados.some(
+              (ps) => ps.id === p.id,
+            );
             return (
               <TouchableOpacity
                 key={p.id}
-                style={[
-                  styles.chip,
-                  seleccionado && styles.chipSelected,
-                ]}
+                style={[styles.chip, seleccionado && styles.chipSelected]}
                 onPress={() => toggleProducto(p.id)}
               >
                 <Text
@@ -121,7 +222,6 @@ const PedidosScreen: React.FC = () => {
                     keyboardType="number-pad"
                     value={ps.cantidad}
                     onChangeText={(text) => {
-                      // Solo acepta números
                       if (text === '' || /^\d+$/.test(text)) {
                         actualizarCantidad(ps.id, text);
                       }
@@ -148,36 +248,66 @@ const PedidosScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
+      {/* LISTA DE PEDIDOS AGRUPADOS */}
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Pedidos registrados</Text>
-        {pedidos.length === 0 ? (
+        {grupos.length === 0 ? (
           <Text style={styles.empty}>No hay pedidos registrados.</Text>
         ) : (
-          pedidos.map((p) => (
-            <View
-              key={p.id}
-              style={[
-                styles.row,
-                p.estado === 'pendiente' && styles.rowPending,
-              ]}
-            >
-              <Text style={styles.rowTitle}>{p.cliente}</Text>
-              <Text style={styles.rowText}>
-                {p.fecha} · {getNombreProducto(p.productoId)} · {p.cantidad} und.
-              </Text>
-              <Text style={styles.rowText}>
-                Estado: {p.estado === 'pendiente' ? 'Pendiente' : 'Entregado'}
-              </Text>
-              {p.estado === 'pendiente' && (
-                <TouchableOpacity
-                  style={styles.smallButton}
-                  onPress={() => actualizarEstadoPedido(p.id, 'entregado')}
-                >
-                  <Text style={styles.smallButtonText}>Marcar entregado</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          ))
+          grupos.map((grupo) => {
+            const estadoTexto = grupo.tienePendiente
+              ? 'Pendiente'
+              : 'Entregado';
+
+            return (
+              <View
+                key={grupo.key}
+                style={[
+                  styles.row,
+                  grupo.tienePendiente && styles.rowPending,
+                ]}
+              >
+                <Text style={styles.rowTitle}>{grupo.cliente}</Text>
+                <Text style={styles.rowText}>{grupo.fecha}</Text>
+
+                {grupo.items.map((item) => (
+                  <Text key={item.id} style={styles.rowText}>
+                    {getNombreProducto(item.productoId)} · {item.cantidad} und.
+                  </Text>
+                ))}
+
+                <Text style={[styles.rowText, { marginTop: 4 }]}>
+                  Estado: {estadoTexto}
+                </Text>
+
+                <View style={styles.rowButtons}>
+                  {grupo.tienePendiente ? (
+                    <TouchableOpacity
+                      style={styles.buttonEntregado}
+                      onPress={() => marcarGrupoEntregado(grupo)}
+                    >
+                      <Text style={styles.buttonEntregadoText}>
+                        Marcar entregado
+                      </Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <View style={styles.buttonEntregadoDisabled}>
+                      <Text style={styles.buttonEntregadoDisabledText}>
+                        Entregado
+                      </Text>
+                    </View>
+                  )}
+
+                  <TouchableOpacity
+                    style={styles.buttonEliminar}
+                    onPress={() => confirmarEliminarGrupo(grupo)}
+                  >
+                    <Text style={styles.buttonEliminarText}>Eliminar</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            );
+          })
         )}
       </View>
 
@@ -234,6 +364,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   buttonText: { color: '#ffffff', fontWeight: '600' },
+  buttonDisabled: {
+    backgroundColor: '#d1d5db',
+  },
   empty: { fontSize: 13, color: '#6b7280' },
   row: {
     marginBottom: 10,
@@ -247,15 +380,12 @@ const styles = StyleSheet.create({
   },
   rowTitle: { fontWeight: '600', fontSize: 14 },
   rowText: { fontSize: 13, color: '#4b5563' },
-  smallButton: {
-    marginTop: 6,
-    alignSelf: 'flex-start',
-    backgroundColor: '#10b981',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
+  rowButtons: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+    alignItems: 'center',
   },
-  smallButtonText: { color: '#ffffff', fontSize: 12, fontWeight: '600' },
   logoutContainer: {
     marginTop: 8,
     alignItems: 'center',
@@ -300,8 +430,38 @@ const styles = StyleSheet.create({
     fontSize: 12,
     width: 80,
   },
-  buttonDisabled: {
-    backgroundColor: '#d1d5db',
+  buttonEntregado: {
+    backgroundColor: '#10b981',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+  },
+  buttonEntregadoText: {
+    color: '#ffffff',
+    fontWeight: '600',
+    fontSize: 12,
+  },
+  buttonEntregadoDisabled: {
+    backgroundColor: '#9ca3af',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+  },
+  buttonEntregadoDisabledText: {
+    color: '#ffffff',
+    fontWeight: '600',
+    fontSize: 12,
+  },
+  buttonEliminar: {
+    backgroundColor: '#ef4444',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+  },
+  buttonEliminarText: {
+    color: '#ffffff',
+    fontWeight: '600',
+    fontSize: 12,
   },
 });
 

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type {
   Usuario,
@@ -32,12 +33,26 @@ interface AppContextType {
   registrarPedidoMultiple: (cliente: string, pedidosItems: VentaItem[]) => void;
   actualizarEstadoPedido: (id: string, nuevoEstado: EstadoPedido) => void;
   ajustarStock: (productoId: string, delta: number) => void;
-  crearProducto: (nombre: string, stockActual: number, stockMinimo: number, unidad: string, precioVenta: number) => void;
+  crearProducto: (
+    nombre: string,
+    stockActual: number,
+    stockMinimo: number,
+    unidad: string,
+    precioVenta: number,
+  ) => void;
   actualizarPrecioProducto: (productoId: string, nuevoPrecio: number) => void;
-  crearIngrediente: (nombre: string, tipoUnidad: TipoUnidadIngrediente, stockActual: number, precioUnitario: number) => void;
+  crearIngrediente: (
+    nombre: string,
+    tipoUnidad: TipoUnidadIngrediente,
+    stockActual: number,
+    precioUnitario: number,
+  ) => void;
   ajustarStockIngrediente: (ingredienteId: string, delta: number) => void;
   actualizarPrecioIngrediente: (ingredienteId: string, nuevoPrecio: number) => void;
-  guardarRecetaProducto: (productoId: string, ingredientes: { ingredienteId: string; cantidad: number }[]) => void;
+  guardarRecetaProducto: (
+    productoId: string,
+    ingredientes: { ingredienteId: string; cantidad: number }[],
+  ) => void;
   obtenerRecetaProducto: (productoId: string) => RecetaProducto | undefined;
   calcularCostoProduccion: (productoId: string, cantidad: number) => number;
   calcularMaxProducible: (productoId: string) => number;
@@ -46,6 +61,7 @@ interface AppContextType {
   setProductoRecetaEditar: (id: string | null) => void;
   eliminarProducto: (productoId: string) => void;
   eliminarIngrediente: (ingredienteId: string) => void;
+  eliminarPedido: (pedidoId: string | string[]) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -74,6 +90,15 @@ function createInitialState(): PersistedState {
     recetas: [],
   };
 }
+
+// Fecha normalizada YYYY-MM-DD (sin horas)
+const getTodayDateString = (): string => {
+  const hoy = new Date();
+  const year = hoy.getFullYear();
+  const month = String(hoy.getMonth() + 1).padStart(2, '0');
+  const day = String(hoy.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const initial = createInitialState();
@@ -119,20 +144,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const logout = () => setUsuarioActual(null);
 
-  const generateId = () => Date.now().toString() + '-' + Math.floor(Math.random() * 1000000).toString();
+  const generateId = () =>
+    Date.now().toString() + '-' + Math.floor(Math.random() * 1000000).toString();
 
   const ajustarStock = (productoId: string, delta: number) => {
-    const nextProductos = productos.map((p) => (p.id === productoId ? { ...p, stockActual: Math.max(0, p.stockActual + delta) } : p));
+    const nextProductos = productos.map((p) =>
+      p.id === productoId
+        ? { ...p, stockActual: Math.max(0, p.stockActual + delta) }
+        : p,
+    );
     setProductos(nextProductos);
     persist({ productos: nextProductos, ventas, pedidos, ingredientes, recetas });
   };
 
-  const crearProducto = (nombre: string, stockActual: number, stockMinimo: number, unidad: string, precioVenta: number) => {
+  const crearProducto = (
+    nombre: string,
+    stockActual: number,
+    stockMinimo: number,
+    unidad: string,
+    precioVenta: number,
+  ) => {
     if (!nombre || stockActual < 0 || stockMinimo < 0 || !unidad || precioVenta < 0) {
-      alert('Por favor completa todos los campos correctamente');
+      Alert.alert('Error', 'Por favor completa todos los campos correctamente');
       return;
     }
-    const nuevoProducto: Producto = { id: generateId(), nombre, stockActual, stockMinimo, unidad, precioVenta };
+    const nuevoProducto: Producto = {
+      id: generateId(),
+      nombre,
+      stockActual,
+      stockMinimo,
+      unidad,
+      precioVenta,
+    };
     const nextProductos = [...productos, nuevoProducto];
     setProductos(nextProductos);
     persist({ productos: nextProductos, ventas, pedidos, ingredientes, recetas });
@@ -140,10 +183,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const actualizarPrecioProducto = (productoId: string, nuevoPrecio: number) => {
     if (nuevoPrecio < 0) {
-      alert('El precio no puede ser negativo');
+      Alert.alert('Error', 'El precio no puede ser negativo');
       return;
     }
-    const nextProductos = productos.map((p) => (p.id === productoId ? { ...p, precioVenta: nuevoPrecio } : p));
+    const nextProductos = productos.map((p) =>
+      p.id === productoId ? { ...p, precioVenta: nuevoPrecio } : p,
+    );
     setProductos(nextProductos);
     persist({ productos: nextProductos, ventas, pedidos, ingredientes, recetas });
   };
@@ -153,34 +198,61 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const nextRecetas = recetas.filter((r) => r.productoId !== productoId);
     setProductos(nextProductos);
     setRecetas(nextRecetas);
-    persist({ productos: nextProductos, ventas, pedidos, ingredientes, recetas: nextRecetas });
+    persist({
+      productos: nextProductos,
+      ventas,
+      pedidos,
+      ingredientes,
+      recetas: nextRecetas,
+    });
   };
 
   // Ingredientes
-  const crearIngrediente = (nombre: string, tipoUnidad: TipoUnidadIngrediente, stockActual: number, precioUnitario: number) => {
+  const crearIngrediente = (
+    nombre: string,
+    tipoUnidad: TipoUnidadIngrediente,
+    stockActual: number,
+    precioUnitario: number,
+  ) => {
     if (!nombre || stockActual < 0 || precioUnitario < 0) {
-      alert('Por favor completa todos los campos correctamente');
+      Alert.alert('Error', 'Por favor completa todos los campos correctamente');
       return;
     }
     const stockMinimo = tipoUnidad === 'kg' ? 5 : tipoUnidad === 'litros' ? 10 : 15;
-    const nuevoIngrediente: Ingrediente = { id: generateId(), nombre, tipoUnidad, stockActual, stockMinimo, precioUnitario };
+    const nuevoIngrediente: Ingrediente = {
+      id: generateId(),
+      nombre,
+      tipoUnidad,
+      stockActual,
+      stockMinimo,
+      precioUnitario,
+    };
     const nextIngredientes = [...ingredientes, nuevoIngrediente];
     setIngredientes(nextIngredientes);
     persist({ productos, ventas, pedidos, ingredientes: nextIngredientes, recetas });
   };
 
   const ajustarStockIngrediente = (ingredienteId: string, delta: number) => {
-    const nextIngredientes = ingredientes.map((i) => (i.id === ingredienteId ? { ...i, stockActual: Math.max(0, i.stockActual + delta) } : i));
+    const nextIngredientes = ingredientes.map((i) =>
+      i.id === ingredienteId
+        ? { ...i, stockActual: Math.max(0, i.stockActual + delta) }
+        : i,
+    );
     setIngredientes(nextIngredientes);
     persist({ productos, ventas, pedidos, ingredientes: nextIngredientes, recetas });
   };
 
-  const actualizarPrecioIngrediente = (ingredienteId: string, nuevoPrecio: number) => {
+  const actualizarPrecioIngrediente = (
+    ingredienteId: string,
+    nuevoPrecio: number,
+  ) => {
     if (nuevoPrecio < 0) {
-      alert('El precio no puede ser negativo');
+      Alert.alert('Error', 'El precio no puede ser negativo');
       return;
     }
-    const nextIngredientes = ingredientes.map((i) => (i.id === ingredienteId ? { ...i, precioUnitario: nuevoPrecio } : i));
+    const nextIngredientes = ingredientes.map((i) =>
+      i.id === ingredienteId ? { ...i, precioUnitario: nuevoPrecio } : i,
+    );
     setIngredientes(nextIngredientes);
     persist({ productos, ventas, pedidos, ingredientes: nextIngredientes, recetas });
   };
@@ -189,15 +261,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const nextIngredientes = ingredientes.filter((i) => i.id !== ingredienteId);
     const nextRecetas = recetas.map((r) => ({
       ...r,
-      ingredientes: r.ingredientes.filter((ing) => ing.ingredienteId !== ingredienteId),
+      ingredientes: r.ingredientes.filter(
+        (ing) => ing.ingredienteId !== ingredienteId,
+      ),
     }));
     setIngredientes(nextIngredientes);
     setRecetas(nextRecetas);
-    persist({ productos, ventas, pedidos, ingredientes: nextIngredientes, recetas: nextRecetas });
+    persist({
+      productos,
+      ventas,
+      pedidos,
+      ingredientes: nextIngredientes,
+      recetas: nextRecetas,
+    });
   };
 
   // Recetas
-  const guardarRecetaProducto = (productoId: string, ingredientesReceta: { ingredienteId: string; cantidad: number }[]) => {
+  const guardarRecetaProducto = (
+    productoId: string,
+    ingredientesReceta: { ingredienteId: string; cantidad: number }[],
+  ) => {
     const idx = recetas.findIndex((r) => r.productoId === productoId);
     let nextRecetas = [...recetas];
     if (idx >= 0) nextRecetas[idx] = { productoId, ingredientes: ingredientesReceta };
@@ -206,7 +289,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     persist({ productos, ventas, pedidos, ingredientes, recetas: nextRecetas });
   };
 
-  const obtenerRecetaProducto = (productoId: string) => recetas.find((r) => r.productoId === productoId);
+  const obtenerRecetaProducto = (productoId: string) =>
+    recetas.find((r) => r.productoId === productoId);
 
   const calcularCostoProduccion = (productoId: string, cantidad: number) => {
     const receta = obtenerRecetaProducto(productoId);
@@ -219,12 +303,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return costoTotal;
   };
 
-  // Calcula cuántas unidades del producto se pueden producir con los ingredientes actuales
   const calcularMaxProducible = (productoId: string) => {
     const receta = obtenerRecetaProducto(productoId);
     if (!receta) return 0;
 
-    // Para cada ingrediente, calcular cuántas unidades del producto se pueden hacer
     const posibles = receta.ingredientes.map((item) => {
       const ing = ingredientes.find((i) => i.id === item.ingredienteId);
       if (!ing) return 0;
@@ -236,35 +318,44 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return Math.max(0, Math.min(...posibles));
   };
 
-  // Consumir ingredientes y aumentar stock de producto
   const producirProducto = (productoId: string, cantidad: number) => {
     const receta = obtenerRecetaProducto(productoId);
     if (!receta) {
-      alert('No existe receta para este producto');
+      Alert.alert('Error', 'No existe receta para este producto');
       return false;
     }
 
     const max = calcularMaxProducible(productoId);
     if (cantidad <= 0 || cantidad > max) {
-      alert(`No se puede producir ${cantidad} unidades. Máximo producible: ${max}`);
+      Alert.alert(
+        'Error',
+        `No se puede producir ${cantidad} unidades. Máximo producible: ${max}`,
+      );
       return false;
     }
 
-    // Ajustar ingredientes
     const nextIngredientes = ingredientes.map((ing) => {
       const req = receta.ingredientes.find((r) => r.ingredienteId === ing.id);
       if (!req) return ing;
-      return { ...ing, stockActual: Math.max(0, ing.stockActual - req.cantidad * cantidad) };
+      return {
+        ...ing,
+        stockActual: Math.max(0, ing.stockActual - req.cantidad * cantidad),
+      };
     });
 
-    // Ajustar producto stock
     const nextProductos = productos.map((p) =>
       p.id === productoId ? { ...p, stockActual: p.stockActual + cantidad } : p,
     );
 
     setIngredientes(nextIngredientes);
     setProductos(nextProductos);
-    persist({ productos: nextProductos, ventas, pedidos, ingredientes: nextIngredientes, recetas });
+    persist({
+      productos: nextProductos,
+      ventas,
+      pedidos,
+      ingredientes: nextIngredientes,
+      recetas,
+    });
     return true;
   };
 
@@ -275,22 +366,43 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const producto = productos.find((p) => p.id === productoId);
     if (!producto) return;
     const nuevoStock = producto.stockActual - cantidad;
-    if (nuevoStock < 0) { alert('No hay stock suficiente para esta venta.'); return; }
-    const fecha = new Date().toISOString().slice(0, 10);
+    if (nuevoStock < 0) {
+      Alert.alert('Error', 'No hay stock suficiente para esta venta.');
+      return;
+    }
+    const fecha = getTodayDateString();
     const costoProduccion = calcularCostoProduccion(productoId, cantidad);
-    const gananciaPorUnidad = producto.precioVenta - (cantidad > 0 ? costoProduccion / cantidad : 0);
-    const nuevaVenta: Venta = { id: generateId(), fecha, productoId, cantidad, precioUnitario: producto.precioVenta, costoProduccion, ganancia: gananciaPorUnidad * cantidad };
+    const gananciaPorUnidad =
+      producto.precioVenta -
+      (cantidad > 0 ? costoProduccion / cantidad : 0);
+    const nuevaVenta: Venta = {
+      id: generateId(),
+      fecha,
+      productoId,
+      cantidad,
+      precioUnitario: producto.precioVenta,
+      costoProduccion,
+      ganancia: gananciaPorUnidad * cantidad,
+    };
     const nextVentas = [...ventas, nuevaVenta];
-    const nextProductos = productos.map((p) => (p.id === productoId ? { ...p, stockActual: nuevoStock } : p));
+    const nextProductos = productos.map((p) =>
+      p.id === productoId ? { ...p, stockActual: nuevoStock } : p,
+    );
     setVentas(nextVentas);
     setProductos(nextProductos);
-    persist({ productos: nextProductos, ventas: nextVentas, pedidos, ingredientes, recetas });
+    persist({
+      productos: nextProductos,
+      ventas: nextVentas,
+      pedidos,
+      ingredientes,
+      recetas,
+    });
   };
 
   const registrarVentaMultiple = (ventasItems: VentaItem[]) => {
     let nextProductos = [...productos];
     let nextVentas = [...ventas];
-    const fecha = new Date().toISOString().slice(0, 10);
+    const fecha = getTodayDateString();
 
     ventasItems.forEach((item) => {
       const cantidad = Number(item.cantidad);
@@ -298,10 +410,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const producto = nextProductos.find((p) => p.id === item.id);
       if (!producto) return;
       const nuevoStock = producto.stockActual - cantidad;
-      if (nuevoStock < 0) { alert(`No hay stock suficiente para ${producto.nombre}`); return; }
+      if (nuevoStock < 0) {
+        Alert.alert('Error', `No hay stock suficiente para ${producto.nombre}`);
+        return;
+      }
 
       const costoProduccion = calcularCostoProduccion(item.id, cantidad);
-      const gananciaPorUnidad = producto.precioVenta - (cantidad > 0 ? costoProduccion / cantidad : 0);
+      const gananciaPorUnidad =
+        producto.precioVenta -
+        (cantidad > 0 ? costoProduccion / cantidad : 0);
 
       const nuevaVenta: Venta = {
         id: generateId(),
@@ -314,42 +431,83 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
 
       nextVentas = [...nextVentas, nuevaVenta];
-      nextProductos = nextProductos.map((p) => (p.id === item.id ? { ...p, stockActual: nuevoStock } : p));
+      nextProductos = nextProductos.map((p) =>
+        p.id === item.id ? { ...p, stockActual: nuevoStock } : p,
+      );
     });
 
     setVentas(nextVentas);
     setProductos(nextProductos);
-    persist({ productos: nextProductos, ventas: nextVentas, pedidos, ingredientes, recetas });
+    persist({
+      productos: nextProductos,
+      ventas: nextVentas,
+      pedidos,
+      ingredientes,
+      recetas,
+    });
   };
 
-  const registrarPedido = (cliente: string, productoId: string, cantidadNum: number) => {
+  const registrarPedido = (
+    cliente: string,
+    productoId: string,
+    cantidadNum: number,
+  ) => {
     const cantidad = Number(cantidadNum);
     if (!cliente || !productoId || !cantidad || cantidad <= 0) return;
-    const fecha = new Date().toISOString().slice(0, 10);
-    const nuevoPedido: Pedido = { id: generateId(), cliente, fecha, estado: 'pendiente', productoId, cantidad };
+    const fecha = getTodayDateString();
+    const nuevoPedido: Pedido = {
+      id: generateId(),
+      cliente,
+      fecha,
+      estado: 'pendiente',
+      productoId,
+      cantidad,
+    };
     const nextPedidos = [...pedidos, nuevoPedido];
     setPedidos(nextPedidos);
     persist({ productos, ventas, pedidos: nextPedidos, ingredientes, recetas });
   };
 
-  const registrarPedidoMultiple = (cliente: string, pedidosItems: VentaItem[]) => {
-    if (!cliente || pedidosItems.length === 0) { alert('Por favor ingresa el cliente y selecciona productos'); return; }
-    const fecha = new Date().toISOString().slice(0, 10);
+  const registrarPedidoMultiple = (
+    cliente: string,
+    pedidosItems: VentaItem[],
+  ) => {
+    const fecha = getTodayDateString();
     let nextPedidos = [...pedidos];
+
     pedidosItems.forEach((item) => {
       const cantidad = Number(item.cantidad);
       if (!cantidad || cantidad <= 0) return;
       const producto = productos.find((p) => p.id === item.id);
       if (!producto) return;
-      const nuevoPedido: Pedido = { id: generateId(), cliente, fecha, estado: 'pendiente', productoId: item.id, cantidad };
+
+      const nuevoPedido: Pedido = {
+        id: generateId(),
+        cliente,
+        fecha,
+        estado: 'pendiente',
+        productoId: item.id,
+        cantidad,
+      };
+
       nextPedidos = [...nextPedidos, nuevoPedido];
     });
+
     setPedidos(nextPedidos);
     persist({ productos, ventas, pedidos: nextPedidos, ingredientes, recetas });
   };
 
   const actualizarEstadoPedido = (id: string, nuevoEstado: EstadoPedido) => {
-    const nextPedidos = pedidos.map((p) => (p.id === id ? { ...p, estado: nuevoEstado } : p));
+    const nextPedidos = pedidos.map((p) =>
+      p.id === id ? { ...p, estado: nuevoEstado } : p,
+    );
+    setPedidos(nextPedidos);
+    persist({ productos, ventas, pedidos: nextPedidos, ingredientes, recetas });
+  };
+
+  const eliminarPedido = (pedidoId: string | string[]) => {
+    const ids = Array.isArray(pedidoId) ? pedidoId : [pedidoId];
+    const nextPedidos = pedidos.filter((p) => !ids.includes(p.id));
     setPedidos(nextPedidos);
     persist({ productos, ventas, pedidos: nextPedidos, ingredientes, recetas });
   };
@@ -383,6 +541,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setProductoRecetaEditar,
     eliminarProducto,
     eliminarIngrediente,
+    eliminarPedido,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
@@ -393,4 +552,3 @@ export const useAppContext = (): AppContextType => {
   if (!ctx) throw new Error('useAppContext debe usarse dentro de AppProvider');
   return ctx;
 };
-

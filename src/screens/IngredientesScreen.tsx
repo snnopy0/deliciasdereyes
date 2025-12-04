@@ -37,14 +37,38 @@ const IngredientesScreen: React.FC = () => {
     precio: number;
   } | null>(null);
 
-  const porAcabarse = ingredientes.filter((i) => i.stockActual <= i.stockMinimo);
+  const porAcabarse = ingredientes.filter(
+    (i) => i.stockActual <= i.stockMinimo,
+  );
 
   const handleCrearIngrediente = () => {
     if (!nombre || !stockActual || !precioUnitario) {
       alert('Por favor completa todos los campos');
       return;
     }
-    crearIngrediente(nombre, tipoUnidad, Number(stockActual), Number(precioUnitario));
+
+    // 🔒 Evitar duplicado: mismo nombre + misma unidad
+    const nombreNormalizado = nombre.trim().toLowerCase();
+    const ingredienteDuplicado = ingredientes.find(
+      (i) =>
+        i.nombre.trim().toLowerCase() === nombreNormalizado &&
+        i.tipoUnidad === tipoUnidad,
+    );
+
+    if (ingredienteDuplicado) {
+      alert(
+        'Ya existe un ingrediente con ese nombre y esa unidad.\n\n' +
+          'Puedes usar otra unidad (por ejemplo Harina en kg y Harina en gr) o cambiarle el nombre.',
+      );
+      return;
+    }
+
+    crearIngrediente(
+      nombre,
+      tipoUnidad,
+      Number(stockActual),
+      Number(precioUnitario),
+    );
     setModalVisible(false);
     setNombre('');
     setStockActual('');
@@ -78,7 +102,11 @@ const IngredientesScreen: React.FC = () => {
     alert('Precio actualizado');
   };
 
-  const abrirModalEditarPrecio = (id: string, nombre: string, precio: number) => {
+  const abrirModalEditarPrecio = (
+    id: string,
+    nombre: string,
+    precio: number,
+  ) => {
     setIngredientePrecioEditar({ id, nombre, precio });
     setEditPrecioId(id);
     setEditPrecioValor(precio.toString());
@@ -105,14 +133,26 @@ const IngredientesScreen: React.FC = () => {
     );
   };
 
-  const getUnidadLabel = (tipo: TipoUnidadIngrediente): string => {
-    switch (tipo) {
+  const getUnidadLabel = (tipoUnidad?: TipoUnidadIngrediente): string => {
+    switch (tipoUnidad) {
       case 'kg':
         return 'kg';
+      case 'gr':
+        return 'gr';
       case 'litros':
         return 'L';
+      case 'ml':
+        return 'ml';
+      case 'taza':
+        return 'taza(s)';
+      case 'cucharada':
+        return 'cda.';
+      case 'cucharadita':
+        return 'cdta.';
       case 'unitarios':
         return 'und.';
+      default:
+        return '';
     }
   };
 
@@ -124,7 +164,9 @@ const IngredientesScreen: React.FC = () => {
         style={styles.buttonNuevoIngrediente}
         onPress={() => setModalVisible(true)}
       >
-        <Text style={styles.buttonNuevoIngredienteText}>+ Nuevo Ingrediente</Text>
+        <Text style={styles.buttonNuevoIngredienteText}>
+          + Nuevo Ingrediente
+        </Text>
       </TouchableOpacity>
 
       <View style={styles.cardHighlight}>
@@ -161,7 +203,11 @@ const IngredientesScreen: React.FC = () => {
                 </Text>
                 <TouchableOpacity
                   onPress={() =>
-                    abrirModalEditarPrecio(i.id, i.nombre, i.precioUnitario)
+                    abrirModalEditarPrecio(
+                      i.id,
+                      i.nombre,
+                      i.precioUnitario,
+                    )
                   }
                   style={styles.editPrecioButton}
                 >
@@ -257,32 +303,51 @@ const IngredientesScreen: React.FC = () => {
 
             <Text style={styles.modalLabel}>Tipo de unidad</Text>
             <View style={styles.unidadButtonsContainer}>
-              {(['kg', 'litros', 'unitarios'] as TipoUnidadIngrediente[]).map(
-                (tipo) => (
-                  <TouchableOpacity
-                    key={tipo}
+              {(
+                [
+                  'kg',
+                  'gr',
+                  'litros',
+                  'ml',
+                  'taza',
+                  'cucharada',
+                  'cucharadita',
+                  'unitarios',
+                ] as TipoUnidadIngrediente[]
+              ).map((tipo) => (
+                <TouchableOpacity
+                  key={tipo}
+                  style={[
+                    styles.unidadButton,
+                    tipoUnidad === tipo && styles.unidadButtonSelected,
+                  ]}
+                  onPress={() => setTipoUnidad(tipo)}
+                >
+                  <Text
                     style={[
-                      styles.unidadButton,
-                      tipoUnidad === tipo && styles.unidadButtonSelected,
+                      styles.unidadButtonText,
+                      tipoUnidad === tipo &&
+                        styles.unidadButtonTextSelected,
                     ]}
-                    onPress={() => setTipoUnidad(tipo)}
                   >
-                    <Text
-                      style={[
-                        styles.unidadButtonText,
-                        tipoUnidad === tipo &&
-                          styles.unidadButtonTextSelected,
-                      ]}
-                    >
-                      {tipo === 'unitarios'
-                        ? 'Unitarios'
-                        : tipo === 'kg'
-                        ? 'Kilos'
-                        : 'Litros'}
-                    </Text>
-                  </TouchableOpacity>
-                ),
-              )}
+                    {tipo === 'unitarios'
+                      ? 'Unitarios'
+                      : tipo === 'kg'
+                      ? 'Kilos'
+                      : tipo === 'gr'
+                      ? 'Gramos'
+                      : tipo === 'litros'
+                      ? 'Litros'
+                      : tipo === 'ml'
+                      ? 'Mililitros'
+                      : tipo === 'taza'
+                      ? 'Taza'
+                      : tipo === 'cucharada'
+                      ? 'Cucharada'
+                      : 'Cucharadita'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
 
             <Text style={styles.modalLabel}>Stock inicial</Text>
@@ -325,7 +390,9 @@ const IngredientesScreen: React.FC = () => {
                 style={[styles.modalButton, styles.modalButtonSave]}
                 onPress={handleCrearIngrediente}
               >
-                <Text style={styles.modalButtonText}>Guardar Ingrediente</Text>
+                <Text style={styles.modalButtonText}>
+                  Guardar Ingrediente
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -601,11 +668,11 @@ const styles = StyleSheet.create({
   },
   unidadButtonsContainer: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
     marginBottom: 8,
   },
   unidadButton: {
-    flex: 1,
     paddingHorizontal: 10,
     paddingVertical: 10,
     borderRadius: 8,

@@ -54,6 +54,21 @@ const InventarioScreen: React.FC = () => {
       alert('Por favor completa todos los campos del producto');
       return;
     }
+
+    // 🔒 Evitar productos duplicados por nombre (ej: "Pan blanco")
+    const nombreNormalizado = nombre.trim().toLowerCase();
+    const productoDuplicado = productos.find(
+      (p) => p.nombre.trim().toLowerCase() === nombreNormalizado,
+    );
+
+    if (productoDuplicado) {
+      alert(
+        'Ya existe un producto con ese nombre en el inventario.\n\n' +
+          'Cámbiale un poco el nombre si realmente quieres otro distinto (por ejemplo "Pan blanco grande").',
+      );
+      return;
+    }
+
     setModalVisible(false);
     setPrecioModalVisible(true);
   };
@@ -63,12 +78,19 @@ const InventarioScreen: React.FC = () => {
       alert('Por favor ingresa el precio de venta');
       return;
     }
+
+    const precioNum = Number(precioVenta);
+    if (isNaN(precioNum) || precioNum < 0) {
+      alert('Por favor ingresa un precio de venta válido');
+      return;
+    }
+
     crearProducto(
       nombre,
       Number(stockActual),
       Number(stockMinimo),
       unidad,
-      Number(precioVenta),
+      precioNum,
     );
     setPrecioModalVisible(false);
     setNombre('');

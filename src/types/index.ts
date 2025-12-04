@@ -1,6 +1,15 @@
 export type RolUsuario = 'VENTAS' | 'PRODUCCION';
 
-export type TipoUnidadIngrediente = 'kg' | 'litros' | 'unitarios';
+export type TipoUnidadIngrediente =
+  | 'kg'
+  | 'gr'
+  | 'litros'
+  | 'ml'
+  | 'taza'
+  | 'cucharada'
+  | 'cucharadita'
+  | 'unitarios';
+
 
 export interface Usuario {
   username: string;

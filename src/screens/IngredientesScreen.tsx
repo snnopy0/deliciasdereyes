@@ -43,11 +43,11 @@ const IngredientesScreen: React.FC = () => {
 
   const handleCrearIngrediente = () => {
     if (!nombre || !stockActual || !precioUnitario) {
-      alert('Por favor completa todos los campos');
+      Alert.alert('Datos incompletos', 'Por favor completa todos los campos');
       return;
     }
 
-    // 🔒 Evitar duplicado: mismo nombre + misma unidad
+    // Evitar duplicado: mismo nombre + misma unidad
     const nombreNormalizado = nombre.trim().toLowerCase();
     const ingredienteDuplicado = ingredientes.find(
       (i) =>
@@ -56,9 +56,9 @@ const IngredientesScreen: React.FC = () => {
     );
 
     if (ingredienteDuplicado) {
-      alert(
-        'Ya existe un ingrediente con ese nombre y esa unidad.\n\n' +
-          'Puedes usar otra unidad (por ejemplo Harina en kg y Harina en gr) o cambiarle el nombre.',
+      Alert.alert(
+        'Ingrediente duplicado',
+        'Ya existe un ingrediente con ese nombre y esa unidad.\n\nPuedes usar otra unidad (por ejemplo Harina en kg y Harina en gr) o cambiarle el nombre.',
       );
       return;
     }
@@ -74,32 +74,38 @@ const IngredientesScreen: React.FC = () => {
     setStockActual('');
     setPrecioUnitario('');
     setTipoUnidad('kg');
-    alert('Ingrediente creado exitosamente');
+    Alert.alert('Éxito', 'Ingrediente creado exitosamente');
   };
 
   const handleActualizarStock = () => {
     if (!editStockId || !nuevoStock) return;
+    const stockNum = Number(nuevoStock);
+    if (isNaN(stockNum) || stockNum < 0) {
+      Alert.alert('Valor inválido', 'Por favor ingresa un número válido');
+      return;
+    }
+
     const diferencia =
-      Number(nuevoStock) -
+      stockNum -
       (ingredientes.find((i) => i.id === editStockId)?.stockActual || 0);
     ajustarStockIngrediente(editStockId, diferencia);
     setEditStockId(null);
     setNuevoStock('');
-    alert('Stock actualizado');
+    Alert.alert('Éxito', 'Stock actualizado');
   };
 
   const handleActualizarPrecio = () => {
     if (!editPrecioId || !editPrecioValor) return;
     const precioNum = Number(editPrecioValor);
     if (isNaN(precioNum) || precioNum < 0) {
-      alert('Por favor ingresa un precio válido');
+      Alert.alert('Precio inválido', 'Por favor ingresa un precio válido');
       return;
     }
     actualizarPrecioIngrediente(editPrecioId, precioNum);
     setEditPrecioId(null);
     setEditPrecioValor('');
     setIngredientePrecioEditar(null);
-    alert('Precio actualizado');
+    Alert.alert('Éxito', 'Precio actualizado');
   };
 
   const abrirModalEditarPrecio = (
@@ -126,7 +132,7 @@ const IngredientesScreen: React.FC = () => {
           style: 'destructive',
           onPress: () => {
             eliminarIngrediente(ingredienteId);
-            alert('Ingrediente eliminado exitosamente');
+            Alert.alert('Éxito', 'Ingrediente eliminado exitosamente');
           },
         },
       ],
@@ -220,7 +226,7 @@ const IngredientesScreen: React.FC = () => {
                 <View style={styles.editContainer}>
                   <TextInput
                     style={styles.editInput}
-                    keyboardType="number-pad"
+                    keyboardType="numeric"
                     value={nuevoStock}
                     onChangeText={(text) => {
                       if (text === '' || /^\d*\.?\d*$/.test(text)) {
@@ -354,7 +360,7 @@ const IngredientesScreen: React.FC = () => {
             <TextInput
               style={styles.modalInput}
               placeholder="Ej: 50"
-              keyboardType="number-pad"
+              keyboardType="numeric"
               value={stockActual}
               onChangeText={(text) => {
                 if (text === '' || /^\d*\.?\d*$/.test(text)) {

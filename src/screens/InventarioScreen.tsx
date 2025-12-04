@@ -51,20 +51,23 @@ const InventarioScreen: React.FC = () => {
 
   const handleCrearProducto = () => {
     if (!nombre || !stockActual || !stockMinimo || !unidad) {
-      alert('Por favor completa todos los campos del producto');
+      Alert.alert(
+        'Datos incompletos',
+        'Por favor completa todos los campos del producto',
+      );
       return;
     }
 
-    // 🔒 Evitar productos duplicados por nombre (ej: "Pan blanco")
+    // Evitar productos duplicados por nombre (ej: "Pan blanco")
     const nombreNormalizado = nombre.trim().toLowerCase();
     const productoDuplicado = productos.find(
       (p) => p.nombre.trim().toLowerCase() === nombreNormalizado,
     );
 
     if (productoDuplicado) {
-      alert(
-        'Ya existe un producto con ese nombre en el inventario.\n\n' +
-          'Cámbiale un poco el nombre si realmente quieres otro distinto (por ejemplo "Pan blanco grande").',
+      Alert.alert(
+        'Producto duplicado',
+        'Ya existe un producto con ese nombre en el inventario.\n\nCámbiale un poco el nombre si realmente quieres otro distinto (por ejemplo "Pan blanco grande").',
       );
       return;
     }
@@ -75,13 +78,16 @@ const InventarioScreen: React.FC = () => {
 
   const handleGuardarProducto = () => {
     if (!precioVenta) {
-      alert('Por favor ingresa el precio de venta');
+      Alert.alert('Datos incompletos', 'Por favor ingresa el precio de venta');
       return;
     }
 
     const precioNum = Number(precioVenta);
     if (isNaN(precioNum) || precioNum < 0) {
-      alert('Por favor ingresa un precio de venta válido');
+      Alert.alert(
+        'Precio inválido',
+        'Por favor ingresa un precio de venta válido',
+      );
       return;
     }
 
@@ -98,7 +104,7 @@ const InventarioScreen: React.FC = () => {
     setStockMinimo('');
     setUnidad('');
     setPrecioVenta('');
-    alert('Producto creado exitosamente');
+    Alert.alert('Éxito', 'Producto creado exitosamente');
   };
 
   const handleActualizarStock = () => {
@@ -106,7 +112,10 @@ const InventarioScreen: React.FC = () => {
 
     const stockNum = Number(nuevoStock);
     if (isNaN(stockNum) || stockNum < 0) {
-      alert('Por favor ingresa un número válido');
+      Alert.alert(
+        'Valor inválido',
+        'Por favor ingresa un número de stock válido',
+      );
       return;
     }
 
@@ -116,7 +125,7 @@ const InventarioScreen: React.FC = () => {
     ajustarStock(editStockId, diferencia);
     setEditStockId(null);
     setNuevoStock('');
-    alert('Stock actualizado');
+    Alert.alert('Éxito', 'Stock actualizado');
   };
 
   const handleActualizarPrecio = () => {
@@ -124,7 +133,7 @@ const InventarioScreen: React.FC = () => {
 
     const precioNum = Number(editPrecioValor);
     if (isNaN(precioNum) || precioNum < 0) {
-      alert('Por favor ingresa un precio válido');
+      Alert.alert('Precio inválido', 'Por favor ingresa un precio válido');
       return;
     }
 
@@ -133,7 +142,7 @@ const InventarioScreen: React.FC = () => {
     setEditPrecioId(null);
     setEditPrecioValor('');
     setProductoPrecioEditar(null);
-    alert('Precio actualizado');
+    Alert.alert('Éxito', 'Precio actualizado');
   };
 
   const abrirModalEditarPrecio = (id: string, nombre: string, precio: number) => {
@@ -157,7 +166,7 @@ const InventarioScreen: React.FC = () => {
           style: 'destructive',
           onPress: () => {
             eliminarProducto(productoId);
-            alert('Producto eliminado exitosamente');
+            Alert.alert('Éxito', 'Producto eliminado exitosamente');
           },
         },
       ],
@@ -252,7 +261,7 @@ const InventarioScreen: React.FC = () => {
                 <View style={styles.editContainer}>
                   <TextInput
                     style={styles.editInput}
-                    keyboardType="number-pad"
+                    keyboardType="numeric"
                     value={nuevoStock}
                     onChangeText={(text) => {
                       if (text === '' || /^\d+$/.test(text)) {
@@ -331,7 +340,7 @@ const InventarioScreen: React.FC = () => {
             <TextInput
               style={styles.modalInput}
               placeholder="Ej: 50"
-              keyboardType="number-pad"
+              keyboardType="numeric"
               value={stockActual}
               onChangeText={(text) => {
                 if (text === '' || /^\d+$/.test(text)) {
@@ -344,7 +353,7 @@ const InventarioScreen: React.FC = () => {
             <TextInput
               style={styles.modalInput}
               placeholder="Ej: 10"
-              keyboardType="number-pad"
+              keyboardType="numeric"
               value={stockMinimo}
               onChangeText={(text) => {
                 if (text === '' || /^\d+$/.test(text)) {
@@ -394,7 +403,7 @@ const InventarioScreen: React.FC = () => {
             <TextInput
               style={styles.modalInput}
               placeholder="Ej: 10"
-              keyboardType="number-pad"
+              keyboardType="numeric"
               value={produceCantidad}
               onChangeText={(text) => {
                 if (text === '' || /^\d+$/.test(text)) setProduceCantidad(text);
@@ -414,7 +423,7 @@ const InventarioScreen: React.FC = () => {
                   if (!productoAProducir) return;
                   const qty = Number(produceCantidad);
                   if (!qty || qty <= 0) {
-                    alert('Cantidad inválida');
+                    Alert.alert('Cantidad inválida', 'Ingresa una cantidad válida');
                     return;
                   }
                   const ok = producirProducto(productoAProducir, qty);
@@ -422,7 +431,7 @@ const InventarioScreen: React.FC = () => {
                     setProduceModalVisible(false);
                     setProductoAProducir(null);
                     setProduceCantidad('');
-                    alert('Producción realizada');
+                    Alert.alert('Éxito', 'Producción realizada');
                   }
                 }}
               >
